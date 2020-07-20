@@ -1,0 +1,20 @@
+---
+title: "Estruturação dos scripts"
+author: "Equipe do Projeto Boto-Cinza"
+date: "17/07/2020"
+output: html_document
+---
+
+
+```{r message=FALSE, warning=FALSE}
+pasta_EXCEL_pop <- "../data/EXCEL_populacional"
+pasta_GPS <- "../data/GPS"
+pasta_SONDA <- "../data/SONDA"
+pasta_CAT <- "../data/CAT"
+
+source("../scripts/gera_lista_pop.R")
+
+lapply((gera_lista_pop(pasta_EXCEL_pop, pasta_GPS, pasta_SONDA, pasta_CAT)), summary)
+
+```
+
