@@ -15,6 +15,7 @@ Arquivos \*.R das funções individuais:
 Arquivos markdown e html:
 
 - Dashboard diário
+- Explicaçao detalhada das funções
 
 ## /data
 
