@@ -1,4 +1,4 @@
-# Reposítório de funções
+# Repositório de funções
 
 Aqui estarão disponibilizadas as versões mais atuais das funções utilizadas no PBC.
 
@@ -8,7 +8,7 @@ Arquivos \*.R das funções individuais:
 
 - le_* Funções primárias de leitura. *Dados Brutos --> Dados Primários*
 - junta_* Funções secundárias de união. utilizam *Dados Primários --> Dados Unificados*
-- gera_* Funções que coordenam as primárias e secundárias. *Dados Brutos --> Funções Primárias --> Funções Secundárias --> Dadaos Unificados*
+- gera_* Funções que coordenam as primárias e secundárias. *Dados Brutos --> Funções Primárias --> Dados Primários --> Funções Secundárias --> Dadaos Unificados*
 
 ## /rmarkdown
 
