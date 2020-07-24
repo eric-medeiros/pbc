@@ -184,29 +184,44 @@ lista_acu <- gera_lista_acu(pasta_EXCEL_acu, pasta_GPS, pasta_SONDA)
 library(datamodelr)
 
 # Criando o objeto para datamodelr
-adm <- dm_from_data_frames( 
-  clima = lista_acu$clima,
-  saidas = lista_acu$saidas,
-  gravacoes = lista_acu$gravacoes,
-  assobios = lista_acu$assobios,
-  sonda = lista_acu$sonda,
-  rota = lista_acu$rota
-) %>%
+adm <- dm_from_data_frames(clima = lista_acu$clima,
+                           saidas = lista_acu$saidas,
+                           estacoes = lista_acu$estacoes,
+                           gravacoes = lista_acu$gravacoes,
+                           grupos = lista_acu$grupos,
+                           embarcacoes = lista_acu$embarcacoes,
+                           assobios = lista_acu$assobios,
+                           sonda = lista_acu$sonda,
+                           rota = lista_acu$rota) %>%
   dm_set_key ( "saidas", "saida") %>%
   dm_set_key ( "sonda", "saida") %>%
   dm_set_key ( "rota", "saida") %>%
   dm_set_key ( "clima", "saida") %>%
-  dm_set_key ( "gravacoes", c("saida", "grupo")) %>%
-  dm_set_key ( "assobios", c("saida", "grupo")) %>%
-  dm_add_references (
-    clima$saida == saidas$saida,
-    sonda$saida == saidas$saida,
-    rota$saida == saidas$saida,
-    gravacoes$saida == saidas$saida,
-    assobios$saida == gravacoes$saida,
-    assobios$grupo == gravacoes$grupo
-  ) %>%
-  dm_create_graph(rankdir = "BT", graph_name = "Banco de Dados de Ecologia Acústica", col_attr = c("column", "type"), view_type = "keys_only")
+  dm_set_key ( "estacoes", c("saida", "estacao")) %>%
+  dm_set_key ( "gravacoes", c("saida", "estacao", "arq_wav")) %>%
+  dm_set_key ( "grupos", c("saida", "estacao", "arq_wav")) %>%
+  dm_set_key ( "embarcacoes", c("saida", "estacao", "arq")) %>% 
+  dm_set_key ( "assobios", c("saida", "estacao", "arq_wav")) %>%
+  dm_add_references (clima$saida == saidas$saida,
+                     sonda$saida == saidas$saida,
+                     rota$saida == saidas$saida,
+                     estacoes$saida == saidas$saida,
+                     gravacoes$saida == estacoes$saida,
+                     assobios$saida == gravacoes$saida,
+                     grupos$saida == gravacoes$saida,
+                     embarcacoes$saida == gravacoes$saida,
+                     gravacoes$estacao == estacoes$estacao,
+                     grupos$estacao == gravacoes$estacao,
+                     embarcacoes$estacao == gravacoes$estacao,
+                     assobios$estacao == gravacoes$estacao,
+                     grupos$arq_wav == gravacoes$arq_wav,
+                     embarcacoes$arq == gravacoes$arq_wav,
+                     assobios$arq_wav == gravacoes$arq_wav
+                     ) %>%
+  dm_create_graph(rankdir = "BT",
+                  graph_name = "Banco de Dados de Ecologia Acústica",
+                  col_attr = c("column", "type"),
+                  view_type = "keys_only")
 
 dm_render_graph(adm)
 ```
@@ -221,9 +236,24 @@ lista_acu$sonda
 lista_acu$clima
 ```
 
+#### **Estações**
+```{r}
+lista_acu$estacoes
+```
+
 #### **Gravações**
 ```{r}
 lista_acu$gravacoes
+```
+
+#### **Grupos**
+```{r}
+lista_acu$grupos
+```
+
+#### **Embarcações**
+```{r}
+lista_acu$embarcacoes
 ```
 
 #### **Assobios**
