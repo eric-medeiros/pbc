@@ -79,7 +79,7 @@ dm_render_graph(pdm)
 
 ```
 
-#### **Saidas**
+#### **Saídas**
 ```{r}
 lista_pop$saidas
 ```
@@ -145,7 +145,7 @@ cdm <- dm_from_data_frames(
 dm_render_graph(cdm)
 ```
 
-#### **Saidas**
+#### **Saídas**
 ```{r}
 lista_com$saidas
 ```
@@ -211,12 +211,12 @@ adm <- dm_from_data_frames(
 dm_render_graph(adm)
 ```
 
-#### **Saidas**
+#### **Saídas**
 ```{r}
 lista_acu$sonda
 ```
 
-#### **Climaa**
+#### **Clima**
 ```{r}
 lista_acu$clima
 ```
