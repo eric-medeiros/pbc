@@ -15,8 +15,6 @@ knitr::opts_chunk$set(echo = TRUE)
 
 #### Última atualização: `r Sys.Date()`
 
-## Chamando as funções
-
 Nosso banco de dados é composto de um conjunto de tabelas, unificando as informações de todas as entradas de dados: **planilha de campo**, **arquivo de trajeto**, **arquivo de WP**, **sonda multiparâmetro**, **arquivo de fotos**, **arquivo de áudio** e **arquivos do Raven**, por enquanto. Esse banco é gerado, a partir de dados dados brutos de campo, com o uso de funções, cujos códigos estão na pasta "../scripts" e podem ser chamadas através da função `source()`.
 
 ```{r}
@@ -28,10 +26,10 @@ source("../scripts/gera_lista_acu.R")
 Mudanças futuras:
 
 -   Alternativa de incluir lng/lat na planilha excel, sem WP -- apenas lng/lat
--   Alternativa de incluir datahoras diretamente na planilha de excel
--   Como lidar com pausas nas amostragens espaciais?
+-   Alternativa de incluir datahoras diretamente na planilha de excel?
+-   Como lidar com pausas nas amostragens espaciais? - aba só para pausa?
 
-Dados dos pilotos
+Exemplo:
 
 ```{r}
 pasta_EXCEL_pop <- "../data/EXCEL_populacional"
@@ -177,7 +175,7 @@ lista_com$rota
 lista_com$sonda
 ```
 
-### **Ecologia Acústica**
+### **Ecologia Acústica** {.tabset}
 ```{r message=FALSE, warning=FALSE}
 lista_acu <- gera_lista_acu(pasta_EXCEL_acu, pasta_GPS, pasta_SONDA)
 ```
