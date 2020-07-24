@@ -23,8 +23,8 @@ le_ficha_pop <- function(pasta_EXCEL_pop) {
                            sheet = 3, 
                            col_types = c("text", "date", "text", "text", "text", 
                                          "text", "text", "text", "text", "text", 
-                                          "text", "text", "text", "text", "text", 
-                                          "text")
+                                         "text", "text", "text", "text", "text", 
+                                         "text")
   )
   
   fotos <- read_excel(arquivo_campo_pop,
@@ -81,11 +81,10 @@ le_ficha_pop <- function(pasta_EXCEL_pop) {
   fotos$lat_foto <- as.double(fotos$lat_foto)
   
   #Junção de todas tabelas em uma lista
-  list_pop <- list(
-    saidas = saidas,
-    clima = clima,
-    avistagens = avistagens,
-    fotos = fotos)
+  list_pop <- list(saidas = saidas,
+                   clima = clima,
+                   avistagens = avistagens,
+                   fotos = fotos)
   
   invisible(list_pop)
   
