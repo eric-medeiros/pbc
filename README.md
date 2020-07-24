@@ -14,15 +14,17 @@ Arquivos \*.R das funções individuais:
 
 Arquivos markdown e html:
 
-- Dashboard diário
-- Explicaçao detalhada das funções
+- uso_das_funções: Processo atual, como utilizar as funções e algumas alterações futuras.
+
+- Dashboard diário: Um exemplo de visualização dos dados, só de um campo só de uma das linhas, mas já ajuda a ter algumas idéias.
+
 
 ## /data
 
-Um exemplar dos dados utilizados no PBC (ainda não temos isso completo):
+Um exemplar dos dados utilizados no PBC (ainda não temos isso completo, mas queria chegar lá):
 
-- 3 \*.xls ou \*.xlsx de dados de campo (um mês de dados completo)
-- 5 \*.xls de log da sonda
-- 5 \*.gpx de waypoint
-- 5 \*.gpx de trajeto
-- 10 \*.jpg como exemplo de foto identificação
+- 3 \*.xls ou \*.xlsx de dados de campo (um mês de dados completo de cada linha, quando tiver)
+- 7 \*.xls de log da sonda (referente à um mes de coleta, quando tiver)
+- 7 \*.gpx de waypoint (quando tiver)
+- 7 \*.gpx de trajeto (quando tiver)
+- 10 \*.jpg como exemplo de foto identificação (pensando em alternativas melhores...)
