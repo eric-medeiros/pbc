@@ -158,6 +158,11 @@ le_ficha_acu <- function(pasta_EXCEL_acu) {
   assobios$PI <- as.integer(assobios$PI)
   assobios$Sobreposicao <- as.logical(as.numeric(assobios$Sobreposicao))
 
+<<<<<<< HEAD
+=======
+  
+  
+>>>>>>> d216d4798c96b4895f50a86cb370879594282592
   #Junção de todas tablas em uma lista
   list_acu <- list(saidas = saidas,
                    clima = clima,
