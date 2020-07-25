@@ -1,4 +1,6 @@
-filtra_fdatabase_dia  <- function(dia_em_dma, fdatabase) {
+# - Função para filtrar tudo por um dia só. Ainda criando. Depois fz uma pra filtrar por intervalo
+
+filtra_dia  <- function(dia_em_dma, lista) {
   library(lubridate)
   
   saida_sel <- fdatabase$fsaidas[[ which(fdatabase$fsaidas$data == dmy(dia_em_dma)),"saida"]]
@@ -18,8 +20,13 @@ filtra_fdatabase_dia  <- function(dia_em_dma, fdatabase) {
   
   
   
-  lista_sel <- list(fsaidas_sel = fsaidas_sel , fclima_sel = fclima_sel , favistagens_sel = favistagens_sel, ffotos_sel = ffotos_sel , fsonda_sel = fsonda_sel , frota_sel = frota_sel )
-  
+  lista_sel <- list(fsaidas_sel = fsaidas_sel,
+                    fclima_sel = fclima_sel, 
+                    favistagens_sel = favistagens_sel,
+                    ffotos_sel = ffotos_sel,
+                    fsonda_sel = fsonda_sel,
+                    frota_sel = frota_sel)
+                    
   dia_filtrado <<- dia_em_dma
   saida_filtrada <<- saida_sel
   
