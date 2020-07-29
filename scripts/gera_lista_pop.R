@@ -1,14 +1,14 @@
 gera_lista_pop <- function (pasta_EXCEL_pop, pasta_GPS, pasta_SONDA, pasta_CAT) {
 
-  source("../scripts/le_ficha_pop.R")
-  source("../scripts/le_WPs.R")
-  source("../scripts/le_exif.R")
-  source("../scripts/le_rota_pontos.R")
-  source("../scripts/le_sonda.R")
-  source("../scripts/junta_WP_pop.R")
-  source("../scripts/junta_exif_pop.R")
-  source("../scripts/junta_rota.R")
-  source("../scripts/junta_sonda.R")
+  source("scripts/le_ficha_pop.R")
+  source("scripts/le_WPs.R")
+  source("scripts/le_exif.R")
+  source("scripts/le_rota_pontos.R")
+  source("scripts/le_sonda.R")
+  source("scripts/junta_WP_pop.R")
+  source("scripts/junta_exif_pop.R")
+  source("scripts/junta_rota.R")
+  source("scripts/junta_sonda.R")
   
   list_pop <- le_ficha_pop(pasta_EXCEL_pop)
   dados_WP  <- le_WPs(pasta_GPS)

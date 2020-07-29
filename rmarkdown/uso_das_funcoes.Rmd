@@ -11,6 +11,7 @@ editor_options:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 ```
 
 #### Última atualização: `r Sys.Date()`
@@ -18,9 +19,9 @@ knitr::opts_chunk$set(echo = TRUE)
 Nosso banco de dados é composto de um conjunto de tabelas, unificando as informações de todas as entradas de dados: **planilha de campo**, **arquivo de trajeto**, **arquivo de WP**, **sonda multiparâmetro**, **arquivo de fotos**, **arquivo de áudio** e **arquivos do Raven**, por enquanto. Esse banco é gerado, a partir de dados dados brutos de campo, com o uso de funções, cujos códigos estão na pasta "../scripts" e podem ser chamadas através da função `source()`.
 
 ```{r}
-source("../scripts/gera_lista_pop.R")
-source("../scripts/gera_lista_com.R")
-source("../scripts/gera_lista_acu.R")
+source("scripts/gera_lista_pop.R")
+source("scripts/gera_lista_com.R")
+source("scripts/gera_lista_acu.R")
 ```
 
 Mudanças futuras:
@@ -32,12 +33,12 @@ Mudanças futuras:
 Exemplo:
 
 ```{r}
-pasta_EXCEL_pop <- "../data/EXCEL_populacional"
-pasta_EXCEL_com <- "../data/EXCEL_comportamental"
-pasta_EXCEL_acu <- "../data/EXCEL_acustica"
-pasta_CAT <- "../data/CAT"
-pasta_GPS <- "../data/GPS"
-pasta_SONDA <- "../data/SONDA"
+pasta_EXCEL_pop <- "data/EXCEL_populacional"
+pasta_EXCEL_com <- "data/EXCEL_comportamental"
+pasta_EXCEL_acu <- "data/EXCEL_acustica"
+pasta_CAT <- "data/CAT"
+pasta_GPS <- "data/GPS"
+pasta_SONDA <- "data/SONDA"
 ```
 
 ## Uso das funções {.tabset .tabset-pills}
