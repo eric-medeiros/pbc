@@ -1,8 +1,8 @@
-# União das lng/lat dos WPs em saidas
 junta_WP_com <- function (list_com, dados_WP) {
   library(stringr)
   library(dplyr)
-
+  
+# União das lng/lat dos WPs em saidas
 list_com$saidas$data_WP_I_saida <- str_c(as.character(list_com$saidas$data),"-", list_com$saidas$WP_I_saida)
 list_com$saidas$data_WP_F_saida <- str_c(as.character(list_com$saidas$data),"-", list_com$saidas$WP_F_saida)
 dados_WP$data_WP_WP <- str_c(as.character(as.Date(dados_WP$datahora_WP)),"-", dados_WP$WP_WP)
