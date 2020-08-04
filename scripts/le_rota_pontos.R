@@ -10,6 +10,7 @@ le_rota_pontos <- function(pasta_GPS) {
   # Função de leitura de arquivo indivudual de *.gpx do tipo track
   le_rota_pontos_arquivo <- function(arquivo_track) {
     library(rgdal)
+    library(dplyr)
     library(lubridate)
     library(sp)
     
