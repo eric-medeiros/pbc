@@ -26,7 +26,8 @@ le_rota_pontos <- function(pasta_GPS) {
     
     rota_pontos_dt$dist_p_prox <- c(spDists(rota_pontos_dt[, c(2, 3)], longlat = TRUE, segments = TRUE), 0)
     
-    rota_pontos_dt$datahora_prox <- lead(rota_pontos_dt$datahora_GPS, default = 0)
+    rota_pontos_dt$datahora_prox <- lead(rota_pontos_dt$datahora_GPS,
+                                         default = 0L)
     
     rota_pontos_dt$tempo_p_prox <- difftime(ymd_hms(rota_pontos_dt$datahora_prox),
                                             ymd_hms(rota_pontos_dt$datahora_GPS),
