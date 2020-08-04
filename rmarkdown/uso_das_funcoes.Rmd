@@ -16,22 +16,21 @@ knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 
 #### Última atualização: `r Sys.Date()`
 
-Nosso banco de dados é composto de um conjunto de tabelas, unificando as informações de todas as entradas de dados: **planilha de campo**, **arquivo de trajeto**, **arquivo de WP**, **sonda multiparâmetro**, **arquivo de fotos**, **arquivo de áudio** e **arquivos do Raven**, por enquanto. Esse banco é gerado, a partir de dados dados brutos de campo, com o uso de funções, cujos códigos estão na pasta "../scripts" e podem ser chamadas através da função `source()`.
+Nosso banco de dados é composto de um conjunto de tabelas, unificando as informações de todas as entradas de dados: **planilha de campo**, **arquivo de trajeto**, **arquivo de WP**, **sonda multiparâmetro**, **arquivo de fotos**, e **arquivos do Raven**.
 
+Mudanças futuras:
+
+-   Aba excel **"WP_sub"** com "saida", "data", "hora", "WP_sub" "lng", "lat", "OBS"
+-   Aba excel **"pausa"** com "saida", "data", "WP_I", "WP_F", "OBS"
+
+Funções em **scripts**:
 ```{r}
 source("scripts/gera_lista_pop.R")
 source("scripts/gera_lista_com.R")
 source("scripts/gera_lista_acu.R")
 ```
 
-Mudanças futuras:
-
--   Alternativa de incluir lng/lat na planilha excel, sem WP -- apenas lng/lat
--   Alternativa de incluir datahoras diretamente na planilha de excel?
--   Como lidar com pausas nas amostragens espaciais? - aba só para pausa?
-
-Exemplo:
-
+Exemplos em **data**:
 ```{r}
 pasta_EXCEL_pop <- "data/EXCEL_populacional"
 pasta_EXCEL_com <- "data/EXCEL_comportamental"
@@ -52,29 +51,28 @@ lista_pop <- gera_lista_pop(pasta_EXCEL_pop, pasta_GPS, pasta_SONDA, pasta_CAT)
 library(datamodelr)
 
 # Criando o objeto para datamodelr
-pdm <- dm_from_data_frames(
-  clima = lista_pop$clima,
-  saidas = lista_pop$saidas,
-  avistagens = lista_pop$avistagens,
-  fotos = lista_pop$fotos,
-  sonda = lista_pop$sonda,
-  rota = lista_pop$rota
-) %>%
-  dm_set_key ( "saidas", "saida") %>%
-  dm_set_key ( "sonda", "saida") %>%
-  dm_set_key ( "rota", "saida") %>%
-  dm_set_key ( "clima", "saida") %>%
-  dm_set_key ( "avistagens", c("saida", "grupo")) %>%
-  dm_set_key ( "fotos", c("saida", "grupo")) %>%
-  dm_add_references (
-    clima$saida == saidas$saida,
-    sonda$saida == saidas$saida,
-    avistagens$saida == saidas$saida,
-    rota$saida == saidas$saida,
-    fotos$saida == avistagens$saida,
-    fotos$grupo == avistagens$grupo
-  ) %>%
-  dm_create_graph(rankdir = "BT", graph_name = "Banco de Dados de Parões Populacionais", col_attr = c("column", "type"), view_type = "keys_only")
+pdm <- dm_from_data_frames(clima = lista_pop$clima,
+                           saidas = lista_pop$saidas,
+                           avistagens = lista_pop$avistagens,
+                           fotos = lista_pop$fotos,
+                           sonda = lista_pop$sonda,
+                           rota = lista_pop$rota) %>%
+  dm_set_key ("saidas", "saida") %>%
+  dm_set_key ("sonda", "saida") %>%
+  dm_set_key ("rota", "saida") %>%
+  dm_set_key ("clima", "saida") %>%
+  dm_set_key ("avistagens", c("saida", "grupo")) %>%
+  dm_set_key ("fotos", c("saida", "grupo")) %>%
+  dm_add_references (clima$saida == saidas$saida,
+                     sonda$saida == saidas$saida,
+                     avistagens$saida == saidas$saida,
+                     rota$saida == saidas$saida,
+                     fotos$saida == avistagens$saida,
+                     fotos$grupo == avistagens$grupo) %>%
+  dm_create_graph(rankdir = "BT",
+                  graph_name = "Banco de Dados de Parões Populacionais",
+                  col_attr = c("column", "type"),
+                  view_type = "keys_only")
 
 dm_render_graph(pdm)
 
@@ -119,29 +117,28 @@ lista_com <- gera_lista_com(pasta_EXCEL_com, pasta_GPS, pasta_SONDA)
 library(datamodelr)
 
 # Criando o objeto para datamodelr
-cdm <- dm_from_data_frames( 
-  clima = lista_com$clima,
-  saidas = lista_com$saidas,
-  avistagens = lista_com$avistagens,
-  comportamento = lista_com$comportamento,
-  sonda = lista_com$sonda,
-  rota = lista_com$rota
-) %>%
-  dm_set_key ( "saidas", "saida") %>%
-  dm_set_key ( "sonda", "saida") %>% 
-  dm_set_key ( "rota", "saida") %>%
-  dm_set_key ( "clima", "saida") %>%
-  dm_set_key ( "avistagens", c("saida", "grupo")) %>%
-  dm_set_key ( "comportamento", c("saida", "grupo")) %>%
-  dm_add_references (
-    clima$saida == saidas$saida,
-    sonda$saida == saidas$saida,
-    rota$saida == saidas$saida,
-    avistagens$saida == saidas$saida,
-    comportamento$saida == avistagens$saida,
-    comportamento$grupo == avistagens$grupo
-  ) %>%
-  dm_create_graph(rankdir = "BT", graph_name = "Banco de Dados de Comportamento", col_attr = c("column", "type"), view_type = "keys_only")
+cdm <- dm_from_data_frames(clima = lista_com$clima,
+                           saidas = lista_com$saidas,
+                           avistagens = lista_com$avistagens,
+                           comportamento = lista_com$comportamento,
+                           sonda = lista_com$sonda,
+                           rota = lista_com$rota) %>%
+  dm_set_key ("saidas", "saida") %>%
+  dm_set_key ("sonda", "saida") %>% 
+  dm_set_key ("rota", "saida") %>%
+  dm_set_key ("clima", "saida") %>%
+  dm_set_key ("avistagens", c("saida", "grupo")) %>%
+  dm_set_key ("comportamento", c("saida", "grupo")) %>%
+  dm_add_references (clima$saida == saidas$saida,
+                     sonda$saida == saidas$saida,
+                     rota$saida == saidas$saida,
+                     avistagens$saida == saidas$saida,
+                     comportamento$saida == avistagens$saida,
+                     comportamento$grupo == avistagens$grupo) %>%
+  dm_create_graph(rankdir = "BT",
+                  graph_name = "Banco de Dados de Comportamento",
+                  col_attr = c("column", "type"),
+                  view_type = "keys_only")
 
 dm_render_graph(cdm)
 ```
@@ -194,15 +191,15 @@ adm <- dm_from_data_frames(clima = lista_acu$clima,
                            assobios = lista_acu$assobios,
                            sonda = lista_acu$sonda,
                            rota = lista_acu$rota) %>%
-  dm_set_key ( "saidas", "saida") %>%
-  dm_set_key ( "sonda", "saida") %>%
-  dm_set_key ( "rota", "saida") %>%
-  dm_set_key ( "clima", "saida") %>%
-  dm_set_key ( "estacoes", c("saida", "estacao")) %>%
-  dm_set_key ( "gravacoes", c("saida", "estacao", "arq_wav")) %>%
-  dm_set_key ( "grupos", c("saida", "estacao", "arq_wav")) %>%
-  dm_set_key ( "embarcacoes", c("saida", "estacao", "arq")) %>% 
-  dm_set_key ( "assobios", c("saida", "estacao", "arq_wav")) %>%
+  dm_set_key ("saidas", "saida") %>%
+  dm_set_key ("sonda", "saida") %>%
+  dm_set_key ("rota", "saida") %>%
+  dm_set_key ("clima", "saida") %>%
+  dm_set_key ("estacoes", c("saida", "estacao")) %>%
+  dm_set_key ("gravacoes", c("saida", "estacao", "arq_wav")) %>%
+  dm_set_key ("grupos", c("saida", "estacao", "arq_wav")) %>%
+  dm_set_key ("embarcacoes", c("saida", "estacao", "arq")) %>% 
+  dm_set_key ("assobios", c("saida", "estacao", "arq_wav")) %>%
   dm_add_references (clima$saida == saidas$saida,
                      sonda$saida == saidas$saida,
                      rota$saida == saidas$saida,
@@ -217,8 +214,7 @@ adm <- dm_from_data_frames(clima = lista_acu$clima,
                      assobios$estacao == gravacoes$estacao,
                      grupos$arq_wav == gravacoes$arq_wav,
                      embarcacoes$arq == gravacoes$arq_wav,
-                     assobios$arq_wav == gravacoes$arq_wav
-                     ) %>%
+                     assobios$arq_wav == gravacoes$arq_wav) %>%
   dm_create_graph(rankdir = "BT",
                   graph_name = "Banco de Dados de Ecologia Acústica",
                   col_attr = c("column", "type"),
