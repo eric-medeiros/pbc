@@ -51,6 +51,8 @@ junta_WP_pop <- function (list_pop, dados_WP) {
            lat_F = lat_WP,
            WP_F = WP_WP)
   
+  list_pop$saidas$tempo_saida <- ms(difftime(list_pop$saidas$datahora_F, list_pop$saidas$datahora_I))
+  
   list_pop$saidas <- list_pop$saidas %>%
     dplyr::select(saida,
                   data,
@@ -63,6 +65,7 @@ junta_WP_pop <- function (list_pop, dados_WP) {
                   lng_F,
                   lat_F,
                   WP_F,
+                  tempo_saida,
                   rota,
                   equipe,
                   litros_abastecidos,
@@ -75,7 +78,6 @@ junta_WP_pop <- function (list_pop, dados_WP) {
   list_pop$saidas$datahora_F <- ymd_hms(list_pop$saidas$datahora_F)
   list_pop$saidas$lng_F <- as.numeric(list_pop$saidas$lng_F)
   list_pop$saidas$lat_F <- as.numeric(list_pop$saidas$lat_F)
-  list_pop$saidas$tempo_saida <- ms(difftime(list_pop$saidas$datahora_F, list_pop$saidas$datahora_I))
   
   # União das lng/lat dos WPs em clima ----
   
@@ -123,6 +125,8 @@ junta_WP_pop <- function (list_pop, dados_WP) {
            lng_F = lng_WP,
            lat_F = lat_WP,
            WP_F = WP_WP)
+
+  list_pop$clima$tempo_clima <- ms(difftime(list_pop$clima$datahora_F, list_pop$clima$datahora_I)) 
   
   list_pop$clima <- list_pop$clima %>%
     dplyr::select(saida,
@@ -134,6 +138,7 @@ junta_WP_pop <- function (list_pop, dados_WP) {
                   lng_F,
                   lat_F,
                   WP_F,
+                  tempo_clima,
                   dir_vento,
                   veloc_vento,
                   beaufort,
@@ -149,7 +154,6 @@ junta_WP_pop <- function (list_pop, dados_WP) {
   list_pop$clima$datahora_F <- ymd_hms(list_pop$clima$datahora_F)
   list_pop$clima$lng_F <- as.numeric(list_pop$clima$lng_F)
   list_pop$clima$lat_F <- as.numeric(list_pop$clima$lat_F)
-  list_pop$clima$tempo_clima <- ms(difftime(list_pop$clima$datahora_F, list_pop$clima$datahora_I)) 
   
   # União das lng/lat dos WPs em avistagens ----
   list_pop$avistagens$data_WP_I <- str_c(as.character(list_pop$avistagens$data),
@@ -203,6 +207,8 @@ junta_WP_pop <- function (list_pop, dados_WP) {
            lat_F = lat_WP,
            WP_F = WP_WP)
   
+  list_pop$avistagens$tempo_grupo <- ms(difftime(list_pop$avistagens$datahora_F, list_pop$avistagens$datahora_I))
+  
   list_pop$avistagens <- list_pop$avistagens %>%
     dplyr::select(saida,
                   data,
@@ -215,6 +221,7 @@ junta_WP_pop <- function (list_pop, dados_WP) {
                   lng_F,
                   lat_F,
                   WP_F,
+                  tempo_grupo,
                   num_fotos,
                   estado,
                   coesao,
@@ -234,7 +241,6 @@ junta_WP_pop <- function (list_pop, dados_WP) {
   list_pop$avistagens$datahora_F <- ymd_hms(list_pop$avistagens$datahora_F)
   list_pop$avistagens$lng_F <- as.numeric(list_pop$avistagens$lng_F)
   list_pop$avistagens$lat_F <- as.numeric(list_pop$avistagens$lat_F)
-  list_pop$avistagens$tempo_grupo <- ms(difftime(list_pop$avistagens$datahora_F, list_pop$avistagens$datahora_I))
 
   invisible(list_pop)
   
