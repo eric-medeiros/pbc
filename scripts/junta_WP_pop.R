@@ -176,6 +176,7 @@ junta_WP_pop <- function (list_pop, dados_WP) {
                   lng_I,
                   lat_I,
                   WP_I,
+                  tempo_grupo,
                   num_fotos,
                   estado,
                   coesao,
@@ -213,6 +214,7 @@ junta_WP_pop <- function (list_pop, dados_WP) {
                   lng_F,
                   lat_F,
                   WP_F,
+                  tempo_grupo,
                   num_fotos,
                   estado,
                   coesao,
@@ -232,6 +234,7 @@ junta_WP_pop <- function (list_pop, dados_WP) {
   list_pop$avistagens$datahora_F <- ymd_hms(list_pop$avistagens$datahora_F)
   list_pop$avistagens$lng_F <- as.numeric(list_pop$avistagens$lng_F)
   list_pop$avistagens$lat_F <- as.numeric(list_pop$avistagens$lat_F)
+  list_pop$avistagens$tempo_grupo <- ms(list_pop$avistagens$tempo_grupo)
   
   invisible(list_pop)
   
