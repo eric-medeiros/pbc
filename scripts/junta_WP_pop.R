@@ -51,7 +51,7 @@ junta_WP_pop <- function (list_pop, dados_WP) {
            lat_F = lat_WP,
            WP_F = WP_WP)
   
-  list_pop$saidas$tempo_saida <- ms(difftime(list_pop$saidas$datahora_F, list_pop$saidas$datahora_I))
+  list_pop$saidas$tempo_saida <- ms(difftime(list_pop$saidas$datahora_F, list_pop$saidas$datahora_I, units = "mins"))
   
   list_pop$saidas <- list_pop$saidas %>%
     dplyr::select(saida,
@@ -126,7 +126,7 @@ junta_WP_pop <- function (list_pop, dados_WP) {
            lat_F = lat_WP,
            WP_F = WP_WP)
 
-  list_pop$clima$tempo_clima <- ms(difftime(list_pop$clima$datahora_F, list_pop$clima$datahora_I)) 
+  list_pop$clima$tempo_clima <- ms(difftime(list_pop$clima$datahora_F, list_pop$clima$datahora_I, units = "mins")) 
   
   list_pop$clima <- list_pop$clima %>%
     dplyr::select(saida,
@@ -207,7 +207,7 @@ junta_WP_pop <- function (list_pop, dados_WP) {
            lat_F = lat_WP,
            WP_F = WP_WP)
   
-  list_pop$avistagens$tempo_grupo <- ms(difftime(list_pop$avistagens$datahora_F, list_pop$avistagens$datahora_I))
+  list_pop$avistagens$tempo_grupo <- ms(difftime(list_pop$avistagens$datahora_F, list_pop$avistagens$datahora_I, units = "mins"))
   
   list_pop$avistagens <- list_pop$avistagens %>%
     dplyr::select(saida,
