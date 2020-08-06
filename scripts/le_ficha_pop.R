@@ -80,6 +80,9 @@ le_ficha_pop <- function(pasta_EXCEL_pop) {
   fotos$lng_foto <- as.double(fotos$lng_foto)
   fotos$lat_foto <- as.double(fotos$lat_foto)
   
+  
+  avistagens$tempo_grupo <- difftime(test$datahora_F, test$datahora_I)
+  
   #Junção de todas tabelas em uma lista
   list_pop <- list(saidas = saidas,
                    clima = clima,
