@@ -81,7 +81,7 @@ le_ficha_pop <- function(pasta_EXCEL_pop) {
   fotos$lat_foto <- as.double(fotos$lat_foto)
   
   
-  avistagens$tempo_grupo <- difftime(avistagens$datahora_F, avistagens$datahora_I)
+  avistagens$avistagens$tempo_grupo <- difftime(avistagens$datahora_F, avistagens$datahora_I)
 
   #Junção de todas tabelas em uma lista
   list_pop <- list(saidas = saidas,
