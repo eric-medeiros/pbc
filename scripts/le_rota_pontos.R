@@ -6,6 +6,7 @@ le_rota_pontos <- function(pasta_GPS) {
   library(data.table)
   library(lubridate)
   library(tidyr)
+  library(xts)
   
   # Função de leitura de arquivo indivudual de *.gpx do tipo track
   le_rota_pontos_arquivo <- function(arquivo_track) {
@@ -29,10 +30,10 @@ le_rota_pontos <- function(pasta_GPS) {
     rota_pontos_dt$datahora_prox <- lead(rota_pontos_dt$datahora_GPS,
                                          default = "0")
     
-    rota_pontos_dt$tempo_p_prox <- difftime(ymd_hms(rota_pontos_dt$datahora_prox),
-                                            ymd_hms(rota_pontos_dt$datahora_GPS),
-                                            units = "hours")
-    rota_pontos_dt$datahora_prox <- NULL
+    rota_pontos_dt$tempo_p_prox <- interval(ymd_hms(rota_pontos_dt$datahora_GPS),
+                                            ymd_hms(rota_pontos_dt$datahora_prox))
+
+    rota_pontos_dt$tempo_p_prox <- NULL
     
     return(rota_pontos_dt)
   }
@@ -50,12 +51,13 @@ le_rota_pontos <- function(pasta_GPS) {
     nest()
   
   lista_datas <- map(dados_track[[2]], ~as.character.Date(median(as.Date(.$"datahora_GPS"))))
+  
   dados_track$data_GPS <- ymd(abind(lista_datas))
   
   dados_track$datahora_I_track <-  ymd_hms(map_chr(dados_track[[2]], ~first(.$"datahora_GPS")))
   dados_track$datahora_F_track <-  ymd_hms(map_chr(dados_track[[2]], ~last(.$"datahora_GPS")))
   dados_track$dist_total <- map_dbl(dados_track[[2]], ~sum(.$"dist_p_prox"))
-  dados_track$tempo_total <- map_dbl(dados_track[[2]], ~sum(.$"tempo_p_prox", na.rm = TRUE))
+  dados_track$tempo_total <- as.period(interval(dados_track$datahora_I_track,dados_track$datahora_F_track))
   
   dados_track <- dados_track %>%
     select(1,3,4,5,6,7,2)

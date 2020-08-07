@@ -1,0 +1,54 @@
+---
+title: "Mapa das saídas"
+author: "Equipe do Projeto Boto-Cinza"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+source("scripts/le_rota_pontos.R")
+source("scripts/le_ficha_pop.R")
+source("scripts/le_WPs.R")
+source("scripts/junta_WP_pop.R")
+source("scripts/junta_rota.R")
+
+pasta_GPS <- "data/GPS"
+pasta_EXCEL_pop <- "data/EXCEL_populacional"
+
+list_pop <- le_ficha_pop(pasta_EXCEL_pop)
+dados_WP <- le_WPs(pasta_GPS)
+dados_rotas <- le_rota_pontos(pasta_GPS)
+  
+list_populacional <- list_pop %>%
+  junta_WP_pop(dados_WP) %>%
+  junta_rota(dados_rotas)
+
+list_sel <- list_populacional[c(1,3,5)]
+
+dados_rel <- list_sel$avistagens %>%
+  group_by(saida) %>%
+  nest() %>%
+  left_join(list_sel$saidas, by = "saida")
+
+dados_rel <- list_sel$rota %>%
+  group_by(saida) %>%
+  left_join(dados_rel, by = "saida")
+
+colnames (dados_rel)[8] <- "dados_GPS"
+colnames (dados_rel)[9] <- "dados_avistagens"
+
+dados_rel$num_grupos <- map(dados_rel$dados_avistagens, nrow) %>% abind()
+
+
+```
+
+
+```{r}
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
