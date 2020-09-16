@@ -64,7 +64,7 @@ le_planilha_L3 <- function(pasta_L3) {
   saidas$WP_I <- str_pad(saidas$WP_I, 3, "left", "0")
   saidas$WP_F <- str_pad(saidas$WP_F, 3, "left", "0")
   saidas$periodo <- as.factor(saidas$periodo)
-  saidas$equipe <- as.factor(saidas$equipe)
+  saidas$equipe <- as.character(saidas$equipe)
   saidas$barqueiro <- as.factor(saidas$barqueiro)
   saidas$litros_consumidos <- as.double(saidas$litros_consumidos)
 

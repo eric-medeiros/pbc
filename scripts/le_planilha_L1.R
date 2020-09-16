@@ -57,7 +57,7 @@ le_planilha_L1 <- function(pasta_L1) {
   saidas$WP_I <- str_pad(saidas$WP_I, 3, "left", "0")
   saidas$WP_F <- str_pad(saidas$WP_F, 3, "left", "0")
   saidas$rota <- as.factor(saidas$rota)
-  saidas$equipe <- as.factor(saidas$equipe)
+  saidas$equipe <- as.character(saidas$equipe)
   saidas$barqueiro <- as.factor(saidas$barqueiro)
   saidas$litros_consumidos <- as.numeric(saidas$litros_consumidos)
   

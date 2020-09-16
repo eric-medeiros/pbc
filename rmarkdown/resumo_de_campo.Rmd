@@ -196,6 +196,39 @@ kable(bd_L3$saidas[17:23]) %>%
 
 ```
 
+### Auxiliadas
+
+```{r echo=FALSE}
+
+aux_1 <- bd_L1$saidas[13] %>%
+  mutate(equipe = strsplit(equipe, ", "),
+         linha = 1) %>%
+  unnest(equipe)
+
+aux_2 <- bd_L2$saidas[13] %>%
+  mutate(equipe = strsplit(equipe, ", "),
+         linha = 2) %>%
+  unnest(equipe)
+
+aux_3 <- bd_L3$saidas[13] %>%
+  mutate(equipe = strsplit(equipe, ", "),
+         linha = 3) %>%
+  unnest(equipe)
+
+AUX <- aux_1 %>% bind_rows(aux_2) %>% bind_rows(aux_3)
+
+AUX$equipe[str_detect(AUX$equipe, "Ellen|Clarissa|Julia", negate = TRUE)] <- "-externo-"
+
+AUX$equipe[str_detect(AUX$equipe, "Julia")] <- "01_Julia"
+AUX$equipe[str_detect(AUX$equipe, "Clarissa")] <- "02_Clarissa"
+AUX$equipe[str_detect(AUX$equipe, "Ellen")] <- "03_Ellen"
+
+mosaicplot(linha ~ equipe,
+           data = AUX,
+           main = "Participações em campos",
+           color = c("black", "red", "blue", "green"))
+
+```
 
 
 Column {data-width=450}
