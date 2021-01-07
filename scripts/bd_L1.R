@@ -1,4 +1,5 @@
 bd_L1 <- function ( pasta_L1 ) {
+  library(magrittr)
   
   source("scripts/sub_WP_L1.R")
   source("scripts/le_sonda_L.R")
