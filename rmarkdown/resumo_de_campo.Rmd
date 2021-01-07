@@ -26,9 +26,9 @@ library(tuneR)
 ```
 
 ```{r echo=FALSE}
-inicio_relatorio <- dmy("09/07/2020")
+inicio_relatorio <- dmy("09/11/2020")
 
-fim_relatorio <- dmy("08/11/2020")
+fim_relatorio <- dmy("08/03/2021")
 
 pasta_L1 <- "C:/Users/PBC-PESQUISA/Documents/PROJETO BOTO-CINZA/PESQUISA/LINHA_1"
 pasta_L2 <- "C:/Users/PBC-PESQUISA/Documents/PROJETO BOTO-CINZA/PESQUISA/LINHA_2"
