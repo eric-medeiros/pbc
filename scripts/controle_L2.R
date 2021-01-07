@@ -26,7 +26,7 @@ controle_L2 <- function(pasta_L2) {
   pdf_scan_t <- list.files(paste(pasta_L2, "/01_CAMPO/01_SCAN", sep = ""), full.names = TRUE)
   pdf_scan_n <- list.files(paste(pasta_L2, "/01_CAMPO/01_SCAN", sep = ""), full.names = TRUE, pattern = "ini")
   pdf_scan_s <- setdiff(pdf_scan_t, pdf_scan_n)
-  excel_t <- read_excel(paste(pasta_L2, "/01_CAMPO/02_EXCEL/comportamento_PBC.xlsx", sep = ""), sheet = 1)
+  excel_t <- read_excel(paste(pasta_L2, "/01_CAMPO/02_EXCEL/comportamento_PBC.xlsx", sep = ""), sheet = 1, col_types = c("guess", "date", "guess", "guess", "guess", "guess", "guess", "guess", "guess", "guess"))
   excel_s <- excel_t[c(1,2)]
   pastas_gps_t <- list.files(paste(pasta_L2, "/01_CAMPO/03_GPS", sep = ""), full.names = TRUE)
   pastas_gps_n <- list.files(paste(pasta_L2, "/01_CAMPO/03_GPS", sep = ""), full.names = TRUE, pattern = "ini")

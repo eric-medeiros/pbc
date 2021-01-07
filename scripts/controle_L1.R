@@ -45,78 +45,79 @@ controle_L1 <- function(pasta_L1) {
   
   fotos <- NULL
   fotos$data <- ymd(str_sub(pastas_fotos_s, -10, -1))
+  fotos$saida <- str_pad(row.names(data.frame(fotos[[1]])), pad = "0", width = 3)
   fotos$dir <- pastas_fotos_s
-  fotos <- tibble("data" = fotos[[1]], "DIR_FOTOS" = fotos[[2]])
+  fotos <- tibble("data" = fotos[[1]], "SAIDA" = fotos[[2]], "DIR_FOTOS" = fotos[[3]])
   
   scan <- NULL
-  scan$data <- ymd(str_sub(pdf_scan_s, -19, -10))
-  scan$saida <- str_sub(pdf_scan_s, -23, -21)
+  scan$data <- ymd(str_sub(pdf_scan_s, 90, 99))
+  scan$saida <- str_sub(pdf_scan_s, 86, 88)
   scan$dir <- pdf_scan_s
-  scan <- tibble("data" = scan[[1]], "saida" = scan[[2]], "DIR_SCAN" = scan[[3]])
+  scan <- tibble("data" = scan[[1]], "SAIDA" = scan[[2]], "DIR_SCAN" = scan[[3]])
   
   excel <- NULL
   excel$data <- ymd(excel_s$data)
   excel$saida <- str_pad(excel_s$saida, side = "left", width = 3, "0")
-  excel <- tibble("data" = excel[[1]], "saida" = excel[[2]])
+  excel <- tibble("data" = excel[[1]], "SAIDA" = excel[[2]])
   
   gps <- NULL
   gps$data <- ymd(str_sub(pastas_gps_s, -10, -1))
   gps$saida <- str_sub(pastas_gps_s, -14, -12)
   gps$dir <- pastas_gps_s
-  gps <- tibble("data" = gps[[1]], "saida" = gps[[2]], "DIR_GPS" = gps[[3]])
+  gps <- tibble("data" = gps[[1]], "SAIDA" = gps[[2]], "DIR_GPS" = gps[[3]])
   
   sonda <- NULL
   sonda$data <- ymd(str_sub(pastas_sonda_s, -10, -1))
   sonda$saida <- str_sub(pastas_sonda_s, -14, -12)
   sonda$dir <- pastas_sonda_s
-  sonda <- tibble("data" = sonda[[1]], "saida" = sonda[[2]], "DIR_SONDA" = sonda[[3]])
+  sonda <- tibble("data" = sonda[[1]], "SAIDA" = sonda[[2]], "DIR_SONDA" = sonda[[3]])
   
   evid <- NULL
   evid$data <- ymd(str_sub(pastas_evid_s, -10, -1))  
   evid$saida <- str_sub(pastas_evid_s, -14, -12)
   evid$dir <- pastas_evid_s
-  evid <- tibble("data" = evid[[1]], "saida" = evid[[2]], "DIR_EVID" = evid[[3]])
+  evid <- tibble("data" = evid[[1]], "SAIDA" = evid[[2]], "DIR_EVID" = evid[[3]])
   
   
-  controle_L1$FOTOS <- controle_L1$DATA %in% fotos$data
+  controle_L1$FOTOS <- controle_L1$SAIDA %in% fotos$SAIDA
   
   controle_L1 <- controle_L1 %>%
-    left_join(fotos, by = "data") %>%
+    left_join(fotos, by = "SAIDA") %>%
     select(DIR_FOTOS) %>%
     bind_cols(controle_L1)
   
   
-  controle_L1$SCAN <- controle_L1$DATA %in% scan$data
+  controle_L1$SCAN <- controle_L1$SAIDA %in% scan$SAIDA
   
   controle_L1 <- controle_L1 %>%
-    left_join(scan, by = "data") %>%
+    left_join(scan, by = "SAIDA") %>%
     select(DIR_SCAN) %>%
     bind_cols(controle_L1)
   
   
-  controle_L1$EXCEL <- controle_L1$DATA %in% excel$data
+  controle_L1$EXCEL <- controle_L1$SAIDA %in% excel$SAIDA
   
   
-  controle_L1$GPS <- controle_L1$DATA %in% gps$data
+  controle_L1$GPS <- controle_L1$SAIDA %in% gps$SAIDA
   
   controle_L1 <- controle_L1 %>%
-    left_join(gps, by = "data") %>%
+    left_join(gps, by = "SAIDA") %>%
     select(DIR_GPS) %>%
     bind_cols(controle_L1)
   
   
-  controle_L1$SONDA <- controle_L1$DATA %in% sonda$data 
+  controle_L1$SONDA <- controle_L1$SAIDA %in% sonda$SAIDA 
   
   controle_L1 <- controle_L1 %>%
-    left_join(sonda, by = "data") %>%
+    left_join(sonda, by = "SAIDA") %>%
     select(DIR_SONDA) %>%
     bind_cols(controle_L1)
   
   
-  controle_L1$EVID <- controle_L1$DATA %in% evid$data
+  controle_L1$EVID <- controle_L1$SAIDA %in% evid$SAIDA
   
   controle_L1 <- controle_L1 %>%
-    left_join(evid, by = "data") %>%
+    left_join(evid, by = "SAIDA") %>%
     select(DIR_EVID) %>%
     bind_cols(controle_L1)
   
