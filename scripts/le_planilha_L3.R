@@ -30,7 +30,7 @@ le_planilha_L3 <- function(pasta_L3) {
   gravacoes <- read_excel(arquivo_campo_L3,
                           sheet = 4, 
                           col_types = c("text", "date", "text", "text", "text",
-                                        "text", "text", "text")
+                                        "text", "text")
   )
   
   embarcacoes <- read_excel(arquivo_campo_L3,
@@ -45,8 +45,8 @@ le_planilha_L3 <- function(pasta_L3) {
                          col_types = c("text", "date", "text", "text", "text",
                                        "text", "text", "text", "text", "text",
                                        "text", "text", "text", "text", "text",
-                                       "text", "text", "text", "text", "text",
-                                       "text", "text")
+                                       "text", "skip", "text", "text", "skip",
+                                       "text", "text", "text", "text")
   )
   
   WP_extras <- read_excel(arquivo_campo_L3,
@@ -96,7 +96,6 @@ le_planilha_L3 <- function(pasta_L3) {
   gravacoes$area <- as.factor(gravacoes$area)
   gravacoes$arquivo_wav <- str_c(gravacoes$arquivo_wav, ".wav", sep = "")
   gravacoes$profund_m <- as.double(gravacoes$profund_m)
-  gravacoes$sonda <- as.character(gravacoes$sonda)
   
   embarcacoes$saida <- as.factor(embarcacoes$saida) 
   embarcacoes$data <- ymd(embarcacoes$data)

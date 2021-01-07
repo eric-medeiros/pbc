@@ -41,7 +41,7 @@ le_planilha_L2 <- function(pasta_L2) {
                                col_types = c("text", "date", "text", "text", "text",
                                              "text", "text", "text", "text", "text",
                                              "text", "text", "text", "text", "text", 
-                                             "text", "text")
+                                             "text", "text", "text")
   )
   
   WP_extras <- read_excel(arquivo_campo_L2,
@@ -116,7 +116,8 @@ le_planilha_L2 <- function(pasta_L2) {
   comportamento$mud_dir <- as.integer(comportamento$mud_dir)
   comportamento$angulacao <- as.integer(comportamento$angulacao)
   comportamento$mud_coe_af <- as.integer(comportamento$mud_coe_af)
-  comportamento$mud_tam_gru <- as.integer(comportamento$mud_tam_gru)  
+  comportamento$mud_tam_gru <- as.integer(comportamento$mud_tam_gru)
+  comportamento$mud_comp_gru <- as.integer(comportamento$mud_comp_gru)
   
   WP_extras$saida <- as.character(WP_extras$saida)
   WP_extras$data <- ymd(WP_extras$data)

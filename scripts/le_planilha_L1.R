@@ -2,6 +2,7 @@
 
 le_planilha_L1 <- function(pasta_L1) {
   library(readxl)
+  library(dplyr)
   library(stringr)
   library(lubridate)
 
