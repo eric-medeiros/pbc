@@ -1,6 +1,6 @@
 # Repositório de funções utilizadas no Projeto Boto-Cinza do Instituto de Pesquisas Cananéia - IPeC
 
-Aqui estarão disponibilizadas as versões mais atuais das funções utilizadas no PBC.
+Aqui estão disponibilizadas as versões mais atuais das funções utilizadas pelo PBC 2020-2022.
 
 ## /1_data
 
@@ -9,7 +9,7 @@ Aqui estarão disponibilizadas as versões mais atuais das funções utilizadas 
 
 ## /2_scripts
 
-#### Arquivos \*.R das funções de leitura e organização dos dados em todos os arquivos para a criação de um "banco de dados"
+#### Arquivos \*.R das funções de leitura dos arquivos e organização dos dados para a criação de um "banco de dados" para cada linha de pesquisa
 
 ## /3_user
 
