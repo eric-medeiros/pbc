@@ -8,19 +8,11 @@ bin-release/
 .Rhistory
 .settings/
 
-
-# Arquivos que devem ser gerados dentro do projeto
-*.rds
-*.dbf
-*.prj
-*.shp
-*.shx
-*.html
-*.tif
-*.tif.aux.xml
+# Ignorando altaração na pastas de exportação
+4_export/**
 
 # Garantindo os arquivos de 1_data
-\!/1_data/**
+\!1_data/**
 
 # thumbs de imagens tiff
 Thumbs.db
