@@ -8,6 +8,7 @@ bin-release/
 .Rhistory
 .settings/
 
+
 # Arquivos que devem ser gerados dentro do projeto
 *.rds
 *.dbf
@@ -17,6 +18,9 @@ bin-release/
 *.html
 *.tif
 *.tif.aux.xml
+
+# Garantindo os arquivos de 1_data
+\!/1_data/**
 
 # thumbs de imagens tiff
 Thumbs.db
