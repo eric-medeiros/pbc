@@ -11,6 +11,11 @@ bin-release/
 # Ignorando altaração na pastas de exportação
 4_export/**
 
+# Especificamente estes *.txt
+4_export/2_resumo/rel_1.txt
+4_export/2_resumo/rel_2.txt
+4_export/2_resumo/rel_3.txt
+
 # Garantindo os arquivos de 1_data
 \!1_data/**
 
