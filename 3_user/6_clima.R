@@ -513,7 +513,7 @@ Rast_Refle <- rast(agua_ras)
 for(i in 1:nrow(pontos)) {
   
   # Definir do dados com o crs 4326 - geográfica/WGS 84 - padrão GPS
-  clima_sv <- pontos[[2]][[1]][-10] %>%
+  clima_sv <- pontos[[2]][[i]][-10] %>%
     vect(c("lng","lat"), crs ="epsg:4326") %>%
     project("epsg:32723") %>%
     buffer(250)
