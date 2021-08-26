@@ -8,7 +8,7 @@ pasta_proj <- rprojroot::find_rstudio_root_file()
 # Inserindo a continuação do caminho para a função bd_L1, que será sempre igual pois está dentro da estrutura do Projeto
 caminho_func_1 <- paste(pasta_proj, "/2_scripts/bd_L1.R", sep = "")
 
-# Importando as funções!! - Parte mais importante
+# Importando as funções!!
 source(caminho_func_1)
 
 # Especificando os caminhos - Aqui são os dados de exemplo que estão no github
@@ -36,7 +36,7 @@ pasta_proj <- rprojroot::find_rstudio_root_file()
 # Inserindo a continuação do caminho para a função bd_L2, que será sempre igual pois está dentro da estrutura do Projeto
 caminho_func_2 <- paste(pasta_proj, "/2_scripts/bd_L2.R", sep = "")
 
-# Importando as funções!! - Parte mais importante
+# Importando as funções!!
 source(caminho_func_2)
 
 # Especificando os caminhos - Aqui são os dados de exemplo que estão no github
@@ -64,7 +64,7 @@ pasta_proj <- rprojroot::find_rstudio_root_file()
 # Inserindo a continuação do caminho para a função bd_L3, que será sempre igual pois está dentro da estrutura do Projeto
 caminho_func_3 <- paste(pasta_proj, "/2_scripts/bd_L3.R", sep = "")
 
-# Importando as funções!! - Parte mais importante
+# Importando as funções!!
 source(caminho_func_3)
 
 # Especificando os caminhos - Aqui são os dados de exemplo que estão no github

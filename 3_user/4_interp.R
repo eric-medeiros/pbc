@@ -32,7 +32,7 @@ res(agua1_ras) <- 250
 agua1_ras <- rasterize(agua1_proj, agua1_ras)
 
 # Abrindo shape dos grupos, tem que ter rodado o 2_Gerando_SHP.R"
-grupos_sf <- st_read("4_export/3_shape/L1_grupos.shp")
+grupos_sf <- st_read("4_export/3_shape/PONTOS/L1_grupos.shp")
 
 # tranformando para EPSG 32723 - projetada/WGS 84/UTM zona23S - entre 48W e 42W
 grupos_proj <- st_transform(grupos_sf, 32723)
@@ -177,7 +177,7 @@ res(agua_ras) <- 250
 agua_ras <- rasterize(agua_proj, agua_ras)
 
 # Abrindo shape dos grupos, tem que ter rodado o 2_Gerando_SHP.R"
-estacoes_sf <- st_read("4_export/3_shape/L3_estacoes.shp")
+estacoes_sf <- st_read("4_export/3_shape/PONTOS/L3_estacoes.shp")
 
 est_unif_sf <- as.data.frame(estacoes_sf) %>%
   group_by(estacao) %>%
