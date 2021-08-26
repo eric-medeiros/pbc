@@ -30,5 +30,5 @@ Aqui estão disponibilizadas as versões mais atuais das funções utilizadas pe
 - /2_resumo/ - 3 arquivos \*.txt que contém resumo dos campos
 - /3_shape/ - ROTAS e PONTOS organizados em pastas separada
 - /4_inter/ - 3 pastas para receber shapefiles e rasters das interpolações
-- /5_sonda/- DIARIO e MEDIA organizados em pastas separadas
-- /6_clima.R - DIARIO e MEDIA organizados em pastas separadas
+- /5_sonda/ - DIARIO e MEDIA organizados em pastas separadas
+- /6_clima/ - DIARIO e MEDIA organizados em pastas separadas
