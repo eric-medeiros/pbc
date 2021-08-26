@@ -445,3 +445,4 @@ st_write(obj = linha_sf,
          layer = "L3_rotas",
          driver = "ESRI Shapefile",
          append = FALSE)
+

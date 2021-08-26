@@ -18,7 +18,7 @@ agua_sv <- vect("1_data/SHAPES_AUX/Agua_L1.shp")
 
 # Mudando a projeção
 agua_proj <- agua_sv %>%
-  project("epsg:32723")
+  terra::project("epsg:32723")
 
 # criando raster da agua transformada para projetada
 agua_im <- rast(agua_proj, resolution = 250)
@@ -59,8 +59,8 @@ for (i in 1:nrow(sonda)) {
   # Definir do dados com o crs 4326 - geográfica/WGS 84 - padrão GPS
   sonda_sv <- sonda[[2]][[i]] %>%
     vect(c("lng","lat"), crs ="epsg:4326") %>%
-    project("epsg:32723") %>%
-    buffer(250)
+    terra::project("epsg:32723") %>%
+    terra::buffer(250)
   
   sonda_sv <- sonda_sv[,c(-9,-10)]
   
@@ -72,7 +72,7 @@ for (i in 1:nrow(sonda)) {
                              na.rm = TRUE),
                    agua_ras)
   
-  writeRaster(x = project(ras_temp,"epsg:4674"),
+  writeRaster(x = terra::project(ras_temp,"epsg:4674"),
               filename = paste0(novo_dir, "/Temp/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
@@ -89,7 +89,7 @@ for (i in 1:nrow(sonda)) {
                             na.rm = TRUE),
                   agua_ras)
   
-  writeRaster(x = project(ras_sal,"epsg:4674"),
+  writeRaster(x = terra::project(ras_sal,"epsg:4674"),
               filename = paste0(novo_dir, "/Sal/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
@@ -106,7 +106,7 @@ for (i in 1:nrow(sonda)) {
                            na.rm = TRUE),
                  agua_ras)
   
-  writeRaster(x = project(ras_od,"epsg:4674"),
+  writeRaster(x = terra::project(ras_od,"epsg:4674"),
               filename = paste0(novo_dir, "/OD/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
@@ -123,7 +123,7 @@ for (i in 1:nrow(sonda)) {
                              na.rm = TRUE),
                    agua_ras)
   
-  writeRaster(x = project(ras_turb,"epsg:4674"),
+  writeRaster(x = terra::project(ras_turb,"epsg:4674"),
               filename = paste0(novo_dir, "/Turb/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
@@ -140,7 +140,7 @@ for (i in 1:nrow(sonda)) {
                            na.rm = TRUE),
                  agua_ras)
   
-  writeRaster(x = project(ras_ph,"epsg:4674"),
+  writeRaster(x = terra::project(ras_ph,"epsg:4674"),
               filename = paste0(novo_dir, "/pH/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
@@ -157,7 +157,7 @@ for (i in 1:nrow(sonda)) {
                              na.rm = TRUE),
                    agua_ras)
   
-  writeRaster(x = project(ras_pres,"epsg:4674"),
+  writeRaster(x = terra::project(ras_pres,"epsg:4674"),
               filename = paste0(novo_dir, "/Pres/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
@@ -230,7 +230,7 @@ agua_sv <- vect("1_data/SHAPES_AUX/Agua_L2.shp")
 
 # Mudando a projeção
 agua_proj <- agua_sv %>%
-  project("epsg:32723")
+  terra::project("epsg:32723")
 
 # criando raster da agua transformada para projetada
 agua_im <- rast(agua_proj, resolution = 250)
@@ -271,8 +271,8 @@ for (i in 1:nrow(sonda)) {
   # Definir do dados com o crs 4326 - geográfica/WGS 84 - padrão GPS
   sonda_sv <- sonda[[2]][[i]] %>%
     vect(c("lng","lat"), crs ="epsg:4326") %>%
-    project("epsg:32723") %>%
-    buffer(250)
+    terra::project("epsg:32723") %>%
+    terra::buffer(250)
   
   sonda_sv <- sonda_sv[,c(-9,-10)]
   
@@ -284,7 +284,7 @@ for (i in 1:nrow(sonda)) {
                              na.rm = TRUE),
                    agua_ras)
   
-  writeRaster(x = project(ras_temp,"epsg:4674"),
+  writeRaster(x = terra::project(ras_temp,"epsg:4674"),
               filename = paste0(novo_dir, "/Temp/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
@@ -301,7 +301,7 @@ for (i in 1:nrow(sonda)) {
                             na.rm = TRUE),
                   agua_ras)
   
-  writeRaster(x = project(ras_sal,"epsg:4674"),
+  writeRaster(x = terra::project(ras_sal,"epsg:4674"),
               filename = paste0(novo_dir, "/Sal/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
@@ -318,7 +318,7 @@ for (i in 1:nrow(sonda)) {
                            na.rm = TRUE),
                  agua_ras)
   
-  writeRaster(x = project(ras_od,"epsg:4674"),
+  writeRaster(x = terra::project(ras_od,"epsg:4674"),
               filename = paste0(novo_dir, "/OD/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
@@ -335,7 +335,7 @@ for (i in 1:nrow(sonda)) {
                              na.rm = TRUE),
                    agua_ras)
   
-  writeRaster(x = project(ras_turb,"epsg:4674"),
+  writeRaster(x = terra::project(ras_turb,"epsg:4674"),
               filename = paste0(novo_dir, "/Turb/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
@@ -352,7 +352,7 @@ for (i in 1:nrow(sonda)) {
                            na.rm = TRUE),
                  agua_ras)
   
-  writeRaster(x = project(ras_ph,"epsg:4674"),
+  writeRaster(x = terra::project(ras_ph,"epsg:4674"),
               filename = paste0(novo_dir, "/pH/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
@@ -369,7 +369,7 @@ for (i in 1:nrow(sonda)) {
                              na.rm = TRUE),
                    agua_ras)
   
-  writeRaster(x = project(ras_pres,"epsg:4674"),
+  writeRaster(x = terra::project(ras_pres,"epsg:4674"),
               filename = paste0(novo_dir, "/Pres/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
@@ -442,7 +442,7 @@ agua_sv <- vect("1_data/SHAPES_AUX/Agua_L3.shp")
 
 # Mudando a projeção
 agua_proj <- agua_sv %>%
-  project("epsg:32723")
+  terra::project("epsg:32723")
 
 # criando raster da agua transformada para projetada
 agua_im <- rast(agua_proj, resolution = 250)
@@ -483,10 +483,10 @@ for (i in 1:nrow(sonda)) {
   # Definir do dados com o crs 4326 - geográfica/WGS 84 - padrão GPS
   sonda_sv <- sonda[[2]][[i]] %>%
     vect(c("lng","lat"), crs ="epsg:4326") %>%
-    project("epsg:32723") %>%
-    buffer(250)
+    terra::project("epsg:32723") %>%
+    terra::buffer(1000)
   
-  sonda_sv <- sonda_sv[,c(-9,-10)]
+  sonda_sv <- sonda_sv[,c(-1,-9,-10)]
   
   # Temperatura
   ras_temp <- crop(rasterize(x = sonda_sv[,"Temp"],
@@ -496,7 +496,7 @@ for (i in 1:nrow(sonda)) {
                              na.rm = TRUE),
                    agua_ras)
   
-  writeRaster(x = project(ras_temp,"epsg:4674"),
+  writeRaster(x = terra::project(ras_temp,"epsg:4674"),
               filename = paste0(novo_dir, "/Temp/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
@@ -513,7 +513,7 @@ for (i in 1:nrow(sonda)) {
                             na.rm = TRUE),
                   agua_ras)
   
-  writeRaster(x = project(ras_sal,"epsg:4674"),
+  writeRaster(x = terra::project(ras_sal,"epsg:4674"),
               filename = paste0(novo_dir, "/Sal/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
@@ -530,7 +530,7 @@ for (i in 1:nrow(sonda)) {
                            na.rm = TRUE),
                  agua_ras)
   
-  writeRaster(x = project(ras_od,"epsg:4674"),
+  writeRaster(x = terra::project(ras_od,"epsg:4674"),
               filename = paste0(novo_dir, "/OD/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
@@ -547,7 +547,7 @@ for (i in 1:nrow(sonda)) {
                              na.rm = TRUE),
                    agua_ras)
   
-  writeRaster(x = project(ras_turb,"epsg:4674"),
+  writeRaster(x = terra::project(ras_turb,"epsg:4674"),
               filename = paste0(novo_dir, "/Turb/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
@@ -564,7 +564,7 @@ for (i in 1:nrow(sonda)) {
                            na.rm = TRUE),
                  agua_ras)
   
-  writeRaster(x = project(ras_ph,"epsg:4674"),
+  writeRaster(x = terra::project(ras_ph,"epsg:4674"),
               filename = paste0(novo_dir, "/pH/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
@@ -581,7 +581,7 @@ for (i in 1:nrow(sonda)) {
                              na.rm = TRUE),
                    agua_ras)
   
-  writeRaster(x = project(ras_pres,"epsg:4674"),
+  writeRaster(x = terra::project(ras_pres,"epsg:4674"),
               filename = paste0(novo_dir, "/Pres/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)

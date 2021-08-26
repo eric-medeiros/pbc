@@ -515,19 +515,19 @@ for(i in 1:nrow(pontos)) {
   # Definir do dados com o crs 4326 - geográfica/WGS 84 - padrão GPS
   clima_sv <- pontos[[2]][[i]][-10] %>%
     vect(c("lng","lat"), crs ="epsg:4326") %>%
-    project("epsg:32723") %>%
-    buffer(250)
+    terra::project("epsg:32723") %>%
+    terra::buffer(500)
   
   clima_sv <- clima_sv[,c(-1,-2)]
   
   # Vento
-  ras_vento <- crop(rasterize(x = clima_sv[,"veloc_vento"],
-                              y = agua_ras,
-                              field = "veloc_vento",
-                              fun = "mode"),
-                    agua_ras)
+  ras_vento <- terra::crop(rasterize(x = clima_sv[,"veloc_vento"],
+                                     y = agua_ras,
+                                     field = "veloc_vento",
+                                     fun = "mode"),
+                           agua_ras)
   
-  writeRaster(x = project(ras_vento,"epsg:4674"),
+  writeRaster(x = terra::project(ras_vento,"epsg:4674"),
               filename = paste0(novo_dir, "/Vento/", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
               overwrite = TRUE)
@@ -537,13 +537,13 @@ for(i in 1:nrow(pontos)) {
   
   
   # Beauf
-  ras_beauf <- crop(rasterize(x = clima_sv[,"beaufort"],
-                              y = agua_ras,
-                              field = "beaufort",
-                              fun = "mode"),
-                    agua_ras)
+  ras_beauf <- terra::crop(rasterize(x = clima_sv[,"beaufort"],
+                                     y = agua_ras,
+                                     field = "beaufort",
+                                     fun = "mode"),
+                           agua_ras)
   
-  writeRaster(x = project(ras_beauf,"epsg:4674"),
+  writeRaster(x = terra::project(ras_beauf,"epsg:4674"),
               filename = paste0(novo_dir, "/Beauf/", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
               overwrite = TRUE)
@@ -553,13 +553,13 @@ for(i in 1:nrow(pontos)) {
   
   
   # Cober
-  ras_cober <- crop(rasterize(x = clima_sv[,"cobert_nuvens"],
-                              y = agua_ras,
-                              field = "cobert_nuvens",
-                              fun = "mode"),
-                    agua_ras)
+  ras_cober <- terra::crop(rasterize(x = clima_sv[,"cobert_nuvens"],
+                                     y = agua_ras,
+                                     field = "cobert_nuvens",
+                                     fun = "mode"),
+                           agua_ras)
   
-  writeRaster(x = project(ras_cober,"epsg:4674"),
+  writeRaster(x = terra::project(ras_cober,"epsg:4674"),
               filename = paste0(novo_dir, "/Cober/", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
               overwrite = TRUE)
@@ -569,13 +569,13 @@ for(i in 1:nrow(pontos)) {
   
   
   # Visib
-  ras_visib <- crop(rasterize(x = clima_sv[,"visibilidade"],
-                              y = agua_ras,
-                              field = "visibilidade",
-                              fun = "mode"),
-                    agua_ras)
+  ras_visib <- terra::crop(rasterize(x = clima_sv[,"visibilidade"],
+                                     y = agua_ras,
+                                     field = "visibilidade",
+                                     fun = "mode"),
+                           agua_ras)
   
-  writeRaster(x = project(ras_visib,"epsg:4674"),
+  writeRaster(x = terra::project(ras_visib,"epsg:4674"),
               filename = paste0(novo_dir, "/Visib/", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
               overwrite = TRUE)
@@ -585,13 +585,13 @@ for(i in 1:nrow(pontos)) {
   
   
   # Refle
-  ras_refle <- crop(rasterize(x = clima_sv[,"reflexo"],
-                              y = agua_ras,
-                              field = "reflexo",
-                              fun = "mode"),
-                    agua_ras)
+  ras_refle <- terra::crop(rasterize(x = clima_sv[,"reflexo"],
+                                     y = agua_ras,
+                                     field = "reflexo",
+                                     fun = "mode"),
+                           agua_ras)
   
-  writeRaster(x = project(ras_vento,"epsg:4674"),
+  writeRaster(x = terra::project(ras_vento,"epsg:4674"),
               filename = paste0(novo_dir, "/Refle/", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
               overwrite = TRUE)

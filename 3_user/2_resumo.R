@@ -1,7 +1,5 @@
 # Resumão de relatório
 
-pasta_proj <- rprojroot::find_rstudio_root_file()
-
 library(magrittr)
 library(dplyr)
 library(purrr)
@@ -43,8 +41,14 @@ rel_1 <- bd_L1$rota %>%
   dplyr::select(4:9, 2, 3)
 
 rel_1$DATA <- as.character.Date(rel_1$DATA)
-rel_1$T_BOTO <-  paste0(hour(rel_1$T_BOTO),":",minute(rel_1$T_BOTO),":", second(rel_1$T_BOTO))
-rel_1$T_BARCO <-  paste0(hour(rel_1$T_BARCO),":",minute(rel_1$T_BARCO),":", second(rel_1$T_BARCO))
+
+rel_1$T_BOTO <-  paste0(lubridate::hour(rel_1$T_BOTO), ":",
+                        lubridate::minute(rel_1$T_BOTO),":",
+                        lubridate::second(rel_1$T_BOTO))
+
+rel_1$T_BARCO <-  paste0(lubridate::hour(rel_1$T_BARCO), ":",
+                         lubridate::minute(rel_1$T_BARCO),":",
+                         lubridate::second(rel_1$T_BARCO))
 
 # Definindo caminho para o arquivo TXT
 caminho_rel_1 <-  paste0(pasta_proj, "/4_export/2_resumo/rel_1.txt")
@@ -100,8 +104,14 @@ rel_2 <- bd_L2$rota[c(2, 6, 7)] %>%
   dplyr::select(4:9, 2, 3)
 
 rel_2$DATA <- as.character.Date(rel_2$DATA)
-rel_2$T_BOTO <-  paste0(hour(rel_2$T_BOTO),":",minute(rel_2$T_BOTO),":", second(rel_2$T_BOTO))
-rel_2$T_BARCO <-  paste0(hour(rel_2$T_BARCO),":",minute(rel_2$T_BARCO),":", second(rel_2$T_BARCO))
+
+rel_2$T_BOTO <-  paste0(lubridate::hour(rel_2$T_BOTO), ":",
+                        lubridate::minute(rel_2$T_BOTO), ":",
+                        lubridate::second(rel_2$T_BOTO))
+
+rel_2$T_BARCO <-  paste0(lubridate::hour(rel_2$T_BARCO), ":",
+                         lubridate::minute(rel_2$T_BARCO),":",
+                         lubridate::second(rel_2$T_BARCO))
 
 # Definindo caminho para o arquivo TXT
 caminho_rel_2 <-  paste0(pasta_proj, "/4_export/2_resumo/rel_2.txt")
@@ -144,8 +154,14 @@ rel_3 <- bd_L3$rota[c(2, 6, 7)] %>%
   dplyr::select(1, 4:8, 2, 3)
 
 rel_3$DATA <- as.character.Date(rel_3$DATA)
-rel_3$T_REC <-  paste0(hour(rel_3$T_REC),":",minute(rel_3$T_REC),":", second(rel_3$T_REC))
-rel_3$T_BARCO <-  paste0(hour(rel_3$T_BARCO),":",minute(rel_3$T_BARCO),":", second(rel_3$T_BARCO))
+
+rel_3$T_REC <-  paste0(lubridate::hour(rel_3$T_REC), ":",
+                       lubridate::minute(rel_3$T_REC), ":",
+                       lubridate::second(rel_3$T_REC))
+
+rel_3$T_BARCO <-  paste0(lubridate::hour(rel_3$T_BARCO), ":",
+                         lubridate::minute(rel_3$T_BARCO), ":",
+                         lubridate::second(rel_3$T_BARCO))
 
 # Definindo caminho para o arquivo TXT
 caminho_rel_3 <-  paste0(pasta_proj, "/4_export/2_resumo/rel_3.txt")
