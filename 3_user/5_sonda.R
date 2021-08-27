@@ -60,17 +60,17 @@ for (i in 1:nrow(sonda)) {
   sonda_sv <- sonda[[2]][[i]] %>%
     vect(c("lng","lat"), crs ="epsg:4326") %>%
     terra::project("epsg:32723") %>%
-    terra::buffer(250)
+    terra::buffer(250) %>%
+    terra::crop(agua_proj)
   
   sonda_sv <- sonda_sv[,c(-9,-10)]
   
   # Temperatura
-  ras_temp <- crop(rasterize(x = sonda_sv[,"Temp"],
-                             y = agua_ras,
-                             field = "Temp",
-                             fun = "mean",
-                             na.rm = TRUE),
-                   agua_ras)
+  ras_temp <- rasterize(x = sonda_sv[,"Temp"],
+                                    y = agua_ras,
+                                    field = "Temp",
+                                    fun = "mean",
+                                    na.rm = TRUE)
   
   writeRaster(x = terra::project(ras_temp,"epsg:4674"),
               filename = paste0(novo_dir, "/Temp/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
@@ -82,12 +82,11 @@ for (i in 1:nrow(sonda)) {
   
   
   # Salinidade
-  ras_sal <- crop(rasterize(x = sonda_sv[,"Sal"],
-                            y = agua_ras,
-                            field = "Sal",
-                            fun = "mean",
-                            na.rm = TRUE),
-                  agua_ras)
+  ras_sal <- rasterize(x = sonda_sv[,"Sal"],
+                       y = agua_ras,
+                       field = "Sal",
+                       fun = "mean",
+                       na.rm = TRUE)
   
   writeRaster(x = terra::project(ras_sal,"epsg:4674"),
               filename = paste0(novo_dir, "/Sal/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
@@ -99,12 +98,11 @@ for (i in 1:nrow(sonda)) {
   
   
   # Oxigênio Dissolvido
-  ras_od <- crop(rasterize(x = sonda_sv[,"OD"],
-                           y = agua_ras,
-                           field = "OD",
-                           fun = "mean",
-                           na.rm = TRUE),
-                 agua_ras)
+  ras_od <- rasterize(x = sonda_sv[,"OD"],
+                      y = agua_ras,
+                      field = "OD",
+                      fun = "mean",
+                      na.rm = TRUE)
   
   writeRaster(x = terra::project(ras_od,"epsg:4674"),
               filename = paste0(novo_dir, "/OD/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
@@ -116,12 +114,11 @@ for (i in 1:nrow(sonda)) {
   
   
   # Turbidez
-  ras_turb <- crop(rasterize(x = sonda_sv[,"Turb"],
-                             y = agua_ras,
-                             field = "Turb",
-                             fun = "mean",
-                             na.rm = TRUE),
-                   agua_ras)
+  ras_turb <- rasterize(x = sonda_sv[,"Turb"],
+                        y = agua_ras,
+                        field = "Turb",
+                        fun = "mean",
+                        na.rm = TRUE)
   
   writeRaster(x = terra::project(ras_turb,"epsg:4674"),
               filename = paste0(novo_dir, "/Turb/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
@@ -133,12 +130,11 @@ for (i in 1:nrow(sonda)) {
   
   
   # pH
-  ras_ph <- crop(rasterize(x = sonda_sv[,"pH"],
-                           y = agua_ras,
-                           field = "pH",
-                           fun = "mean",
-                           na.rm = TRUE),
-                 agua_ras)
+  ras_ph <- rasterize(x = sonda_sv[,"pH"],
+                      y = agua_ras,
+                      field = "pH",
+                      fun = "mean",
+                      na.rm = TRUE)
   
   writeRaster(x = terra::project(ras_ph,"epsg:4674"),
               filename = paste0(novo_dir, "/pH/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
@@ -150,12 +146,11 @@ for (i in 1:nrow(sonda)) {
   
   
   # Pressão Atmosférica
-  ras_pres <- crop(rasterize(x = sonda_sv[,"Pres"],
-                             y = agua_ras,
-                             field = "Pres",
-                             fun = "mean",
-                             na.rm = TRUE),
-                   agua_ras)
+  ras_pres <- rasterize(x = sonda_sv[,"Pres"],
+                        y = agua_ras,
+                        field = "Pres",
+                        fun = "mean",
+                        na.rm = TRUE)
   
   writeRaster(x = terra::project(ras_pres,"epsg:4674"),
               filename = paste0(novo_dir, "/Pres/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
@@ -272,18 +267,18 @@ for (i in 1:nrow(sonda)) {
   sonda_sv <- sonda[[2]][[i]] %>%
     vect(c("lng","lat"), crs ="epsg:4326") %>%
     terra::project("epsg:32723") %>%
-    terra::buffer(250)
+    terra::buffer(250) %>%
+    terra::crop(agua_proj)
   
   sonda_sv <- sonda_sv[,c(-9,-10)]
   
   # Temperatura
-  ras_temp <- crop(rasterize(x = sonda_sv[,"Temp"],
-                             y = agua_ras,
-                             field = "Temp",
-                             fun = "mean",
-                             na.rm = TRUE),
-                   agua_ras)
-  
+  ras_temp <- rasterize(x = sonda_sv[,"Temp"],
+                        y = agua_ras,
+                        field = "Temp",
+                        fun = "mean",
+                        na.rm = TRUE)
+     
   writeRaster(x = terra::project(ras_temp,"epsg:4674"),
               filename = paste0(novo_dir, "/Temp/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
@@ -294,13 +289,12 @@ for (i in 1:nrow(sonda)) {
   
   
   # Salinidade
-  ras_sal <- crop(rasterize(x = sonda_sv[,"Sal"],
-                            y = agua_ras,
-                            field = "Sal",
-                            fun = "mean",
-                            na.rm = TRUE),
-                  agua_ras)
-  
+  ras_sal <- rasterize(x = sonda_sv[,"Sal"],
+                       y = agua_ras,
+                       field = "Sal",
+                       fun = "mean",
+                       na.rm = TRUE)
+                         
   writeRaster(x = terra::project(ras_sal,"epsg:4674"),
               filename = paste0(novo_dir, "/Sal/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
@@ -311,12 +305,11 @@ for (i in 1:nrow(sonda)) {
   
   
   # Oxigênio Dissolvido
-  ras_od <- crop(rasterize(x = sonda_sv[,"OD"],
-                           y = agua_ras,
-                           field = "OD",
-                           fun = "mean",
-                           na.rm = TRUE),
-                 agua_ras)
+  ras_od <- rasterize(x = sonda_sv[,"OD"],
+                      y = agua_ras,
+                      field = "OD",
+                      fun = "mean",
+                      na.rm = TRUE)
   
   writeRaster(x = terra::project(ras_od,"epsg:4674"),
               filename = paste0(novo_dir, "/OD/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
@@ -328,12 +321,11 @@ for (i in 1:nrow(sonda)) {
   
   
   # Turbidez
-  ras_turb <- crop(rasterize(x = sonda_sv[,"Turb"],
-                             y = agua_ras,
-                             field = "Turb",
-                             fun = "mean",
-                             na.rm = TRUE),
-                   agua_ras)
+  ras_turb <- rasterize(x = sonda_sv[,"Turb"],
+                        y = agua_ras,
+                        field = "Turb",
+                        fun = "mean",
+                        na.rm = TRUE)
   
   writeRaster(x = terra::project(ras_turb,"epsg:4674"),
               filename = paste0(novo_dir, "/Turb/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
@@ -345,12 +337,11 @@ for (i in 1:nrow(sonda)) {
   
   
   # pH
-  ras_ph <- crop(rasterize(x = sonda_sv[,"pH"],
-                           y = agua_ras,
-                           field = "pH",
-                           fun = "mean",
-                           na.rm = TRUE),
-                 agua_ras)
+  ras_ph <- rasterize(x = sonda_sv[,"pH"],
+                      y = agua_ras,
+                      field = "pH",
+                      fun = "mean",
+                      na.rm = TRUE)
   
   writeRaster(x = terra::project(ras_ph,"epsg:4674"),
               filename = paste0(novo_dir, "/pH/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
@@ -362,12 +353,11 @@ for (i in 1:nrow(sonda)) {
   
   
   # Pressão Atmosférica
-  ras_pres <- crop(rasterize(x = sonda_sv[,"Pres"],
-                             y = agua_ras,
-                             field = "Pres",
-                             fun = "mean",
-                             na.rm = TRUE),
-                   agua_ras)
+  ras_pres <- rasterize(x = sonda_sv[,"Pres"],
+                        y = agua_ras,
+                        field = "Pres",
+                        fun = "mean",
+                        na.rm = TRUE)
   
   writeRaster(x = terra::project(ras_pres,"epsg:4674"),
               filename = paste0(novo_dir, "/Pres/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
@@ -484,17 +474,17 @@ for (i in 1:nrow(sonda)) {
   sonda_sv <- sonda[[2]][[i]] %>%
     vect(c("lng","lat"), crs ="epsg:4326") %>%
     terra::project("epsg:32723") %>%
-    terra::buffer(1000)
+    terra::buffer(1000) %>%
+    terra::crop(agua_proj)
   
   sonda_sv <- sonda_sv[,c(-1,-9,-10)]
   
   # Temperatura
-  ras_temp <- crop(rasterize(x = sonda_sv[,"Temp"],
-                             y = agua_ras,
-                             field = "Temp",
-                             fun = "mean",
-                             na.rm = TRUE),
-                   agua_ras)
+  ras_temp <- rasterize(x = sonda_sv[,"Temp"],
+                        y = agua_ras,
+                        field = "Temp",
+                        fun = "mean",
+                        na.rm = TRUE)
   
   writeRaster(x = terra::project(ras_temp,"epsg:4674"),
               filename = paste0(novo_dir, "/Temp/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
@@ -506,13 +496,13 @@ for (i in 1:nrow(sonda)) {
   
   
   # Salinidade
-  ras_sal <- crop(rasterize(x = sonda_sv[,"Sal"],
-                            y = agua_ras,
-                            field = "Sal",
-                            fun = "mean",
-                            na.rm = TRUE),
-                  agua_ras)
+  ras_sal <- rasterize(x = sonda_sv[,"Sal"],
+                       y = agua_ras,
+                       field = "Sal",
+                       fun = "mean",
+                       na.rm = TRUE)
   
+ 
   writeRaster(x = terra::project(ras_sal,"epsg:4674"),
               filename = paste0(novo_dir, "/Sal/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
@@ -523,12 +513,11 @@ for (i in 1:nrow(sonda)) {
   
   
   # Oxigênio Dissolvido
-  ras_od <- crop(rasterize(x = sonda_sv[,"OD"],
-                           y = agua_ras,
-                           field = "OD",
-                           fun = "mean",
-                           na.rm = TRUE),
-                 agua_ras)
+  ras_od <- rasterize(x = sonda_sv[,"OD"],
+                      y = agua_ras,
+                      field = "OD",
+                      fun = "mean",
+                      na.rm = TRUE)
   
   writeRaster(x = terra::project(ras_od,"epsg:4674"),
               filename = paste0(novo_dir, "/OD/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
@@ -540,13 +529,12 @@ for (i in 1:nrow(sonda)) {
   
   
   # Turbidez
-  ras_turb <- crop(rasterize(x = sonda_sv[,"Turb"],
-                             y = agua_ras,
-                             field = "Turb",
-                             fun = "mean",
-                             na.rm = TRUE),
-                   agua_ras)
-  
+  ras_turb <- rasterize(x = sonda_sv[,"Turb"],
+                        y = agua_ras,
+                        field = "Turb",
+                        fun = "mean",
+                        na.rm = TRUE)
+
   writeRaster(x = terra::project(ras_turb,"epsg:4674"),
               filename = paste0(novo_dir, "/Turb/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
@@ -557,13 +545,12 @@ for (i in 1:nrow(sonda)) {
   
   
   # pH
-  ras_ph <- crop(rasterize(x = sonda_sv[,"pH"],
-                           y = agua_ras,
-                           field = "pH",
-                           fun = "mean",
-                           na.rm = TRUE),
-                 agua_ras)
-  
+  ras_ph <- rasterize(x = sonda_sv[,"pH"],
+                      y = agua_ras,
+                      field = "pH",
+                      fun = "mean",
+                      na.rm = TRUE)
+
   writeRaster(x = terra::project(ras_ph,"epsg:4674"),
               filename = paste0(novo_dir, "/pH/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
@@ -574,13 +561,12 @@ for (i in 1:nrow(sonda)) {
   
   
   # Pressão Atmosférica
-  ras_pres <- crop(rasterize(x = sonda_sv[,"Pres"],
-                             y = agua_ras,
-                             field = "Pres",
-                             fun = "mean",
-                             na.rm = TRUE),
-                   agua_ras)
-  
+  ras_pres <- rasterize(x = sonda_sv[,"Pres"],
+                        y = agua_ras,
+                        field = "Pres",
+                        fun = "mean",
+                        na.rm = TRUE)
+
   writeRaster(x = terra::project(ras_pres,"epsg:4674"),
               filename = paste0(novo_dir, "/Pres/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
