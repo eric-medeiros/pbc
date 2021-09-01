@@ -37,12 +37,7 @@ sonda <- bd_L1$sonda %>% group_by(saida) %>% nest
 novo_dir <- paste0(pasta_proj, "/4_export/5_sonda/LINHA_1/DIARIO")
 
 # Criar uma pasta para cada parâmetro pare receber os arquivos diários
-dir.create(paste0(novo_dir, "/Temp"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/Sal"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/OD"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/Turb"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/pH"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/Pres"), recursive = TRUE)
+dir.create(novo_dir, recursive = TRUE)
 
 # Criando um stack que receberá todos os dados de cada parâmetro, em cima destes que será feita a média
 Rast_Temp <- rast(agua_ras)
@@ -73,7 +68,7 @@ for (i in 1:nrow(sonda)) {
                                     na.rm = TRUE)
   
   writeRaster(x = terra::project(ras_temp,"epsg:4674"),
-              filename = paste0(novo_dir, "/Temp/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/TP_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
   
@@ -89,7 +84,7 @@ for (i in 1:nrow(sonda)) {
                        na.rm = TRUE)
   
   writeRaster(x = terra::project(ras_sal,"epsg:4674"),
-              filename = paste0(novo_dir, "/Sal/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/SL_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
   
@@ -105,7 +100,7 @@ for (i in 1:nrow(sonda)) {
                       na.rm = TRUE)
   
   writeRaster(x = terra::project(ras_od,"epsg:4674"),
-              filename = paste0(novo_dir, "/OD/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/OD_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
   
@@ -121,7 +116,7 @@ for (i in 1:nrow(sonda)) {
                         na.rm = TRUE)
   
   writeRaster(x = terra::project(ras_turb,"epsg:4674"),
-              filename = paste0(novo_dir, "/Turb/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/TB_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
   
@@ -137,7 +132,7 @@ for (i in 1:nrow(sonda)) {
                       na.rm = TRUE)
   
   writeRaster(x = terra::project(ras_ph,"epsg:4674"),
-              filename = paste0(novo_dir, "/pH/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/PH_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
   
@@ -153,7 +148,7 @@ for (i in 1:nrow(sonda)) {
                         na.rm = TRUE)
   
   writeRaster(x = terra::project(ras_pres,"epsg:4674"),
-              filename = paste0(novo_dir, "/Pres/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/PA_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
   
@@ -244,12 +239,7 @@ sonda <- bd_L2$sonda %>% group_by(saida) %>% nest
 novo_dir <- paste0(pasta_proj, "/4_export/5_sonda/LINHA_2/DIARIO")
 
 # Criar uma pasta para cada parâmetro pare receber os arquivos diários
-dir.create(paste0(novo_dir, "/Temp"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/Sal"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/OD"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/Turb"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/pH"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/Pres"), recursive = TRUE)
+dir.create(novo_dir, recursive = TRUE)
 
 # Criando um stack que receberá todos os dados de cada parâmetro, em cima destes que será feita a média
 Rast_Temp <- rast(agua_ras)
@@ -280,7 +270,7 @@ for (i in 1:nrow(sonda)) {
                         na.rm = TRUE)
      
   writeRaster(x = terra::project(ras_temp,"epsg:4674"),
-              filename = paste0(novo_dir, "/Temp/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/TP_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
   
@@ -296,7 +286,7 @@ for (i in 1:nrow(sonda)) {
                        na.rm = TRUE)
                          
   writeRaster(x = terra::project(ras_sal,"epsg:4674"),
-              filename = paste0(novo_dir, "/Sal/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/SL_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
   
@@ -312,7 +302,7 @@ for (i in 1:nrow(sonda)) {
                       na.rm = TRUE)
   
   writeRaster(x = terra::project(ras_od,"epsg:4674"),
-              filename = paste0(novo_dir, "/OD/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/OD_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
   
@@ -328,7 +318,7 @@ for (i in 1:nrow(sonda)) {
                         na.rm = TRUE)
   
   writeRaster(x = terra::project(ras_turb,"epsg:4674"),
-              filename = paste0(novo_dir, "/Turb/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/TB_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
   
@@ -344,7 +334,7 @@ for (i in 1:nrow(sonda)) {
                       na.rm = TRUE)
   
   writeRaster(x = terra::project(ras_ph,"epsg:4674"),
-              filename = paste0(novo_dir, "/pH/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/PH_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
   
@@ -360,7 +350,7 @@ for (i in 1:nrow(sonda)) {
                         na.rm = TRUE)
   
   writeRaster(x = terra::project(ras_pres,"epsg:4674"),
-              filename = paste0(novo_dir, "/Pres/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/PA_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
   
@@ -451,12 +441,7 @@ sonda <- bd_L3$sonda %>% group_by(saida) %>% nest
 novo_dir <- paste0(pasta_proj, "/4_export/5_sonda/LINHA_3/DIARIO")
 
 # Criar uma pasta para cada parâmetro pare receber os arquivos diários
-dir.create(paste0(novo_dir, "/Temp"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/Sal"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/OD"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/Turb"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/pH"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/Pres"), recursive = TRUE)
+dir.create(novo_dir, recursive = TRUE)
 
 # Criando um stack que receberá todos os dados de cada parâmetro, em cima destes que será feita a média
 Rast_Temp <- rast(agua_ras)
@@ -487,7 +472,7 @@ for (i in 1:nrow(sonda)) {
                         na.rm = TRUE)
   
   writeRaster(x = terra::project(ras_temp,"epsg:4674"),
-              filename = paste0(novo_dir, "/Temp/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/TP_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
   
@@ -504,7 +489,7 @@ for (i in 1:nrow(sonda)) {
   
  
   writeRaster(x = terra::project(ras_sal,"epsg:4674"),
-              filename = paste0(novo_dir, "/Sal/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/SL_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
   
@@ -520,7 +505,7 @@ for (i in 1:nrow(sonda)) {
                       na.rm = TRUE)
   
   writeRaster(x = terra::project(ras_od,"epsg:4674"),
-              filename = paste0(novo_dir, "/OD/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/OD_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
   
@@ -536,7 +521,7 @@ for (i in 1:nrow(sonda)) {
                         na.rm = TRUE)
 
   writeRaster(x = terra::project(ras_turb,"epsg:4674"),
-              filename = paste0(novo_dir, "/Turb/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/TB_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
   
@@ -552,7 +537,7 @@ for (i in 1:nrow(sonda)) {
                       na.rm = TRUE)
 
   writeRaster(x = terra::project(ras_ph,"epsg:4674"),
-              filename = paste0(novo_dir, "/pH/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/PH_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
   
@@ -568,7 +553,7 @@ for (i in 1:nrow(sonda)) {
                         na.rm = TRUE)
 
   writeRaster(x = terra::project(ras_pres,"epsg:4674"),
-              filename = paste0(novo_dir, "/Pres/", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/PA_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
               overwrite = TRUE)
   

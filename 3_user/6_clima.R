@@ -67,11 +67,7 @@ pontos <- pontos %>%
 novo_dir <- paste0(pasta_proj, "/4_export/6_clima/LINHA_1/DIARIO")
 
 # Criar uma pasta para cada parâmetro pare receber os arquivos diários
-dir.create(paste0(novo_dir, "/Vento"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/Beauf"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/Cober"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/Visib"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/Refle"), recursive = TRUE)
+dir.create(novo_dir, recursive = TRUE)
 
 # Criando um stack que receberá todos os dados de cada parâmetro, em cima destes que será feita a média
 Rast_Vento <- rast(agua_ras)
@@ -98,7 +94,7 @@ for(i in 1:nrow(pontos)) {
                          fun = "mode")
   
   writeRaster(x = project(ras_vento,"epsg:4674"),
-              filename = paste0(novo_dir, "/Vento/", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/VT_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
               overwrite = TRUE)
   
@@ -113,7 +109,7 @@ for(i in 1:nrow(pontos)) {
                          fun = "mode")
   
   writeRaster(x = project(ras_beauf,"epsg:4674"),
-              filename = paste0(novo_dir, "/Beauf/", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/BF_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
               overwrite = TRUE)
   
@@ -128,7 +124,7 @@ for(i in 1:nrow(pontos)) {
                          fun = "mode")
 
   writeRaster(x = project(ras_cober,"epsg:4674"),
-              filename = paste0(novo_dir, "/Cober/", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/CB_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
               overwrite = TRUE)
   
@@ -143,7 +139,7 @@ for(i in 1:nrow(pontos)) {
                          fun = "mode")
   
   writeRaster(x = project(ras_visib,"epsg:4674"),
-              filename = paste0(novo_dir, "/Visib/", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/VB_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
               overwrite = TRUE)
   
@@ -158,7 +154,7 @@ for(i in 1:nrow(pontos)) {
                          fun = "mode")
   
   writeRaster(x = project(ras_vento,"epsg:4674"),
-              filename = paste0(novo_dir, "/Refle/", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/RF_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
               overwrite = TRUE)
   
@@ -278,11 +274,7 @@ pontos <- pontos %>%
 novo_dir <- paste0(pasta_proj, "/4_export/6_clima/LINHA_2/DIARIO")
 
 # Criar uma pasta para cada parâmetro pare receber os arquivos diários
-dir.create(paste0(novo_dir, "/Vento"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/Beauf"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/Cober"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/Visib"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/Refle"), recursive = TRUE)
+dir.create(novo_dir, recursive = TRUE)
 
 # Criando um stack que receberá todos os dados de cada parâmetro, em cima destes que será feita a média
 Rast_Vento <- rast(agua_ras)
@@ -309,7 +301,7 @@ for(i in 1:nrow(pontos)) {
                          fun = "mode")
   
   writeRaster(x = project(ras_vento,"epsg:4674"),
-              filename = paste0(novo_dir, "/Vento/", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/VT_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
               overwrite = TRUE)
   
@@ -324,7 +316,7 @@ for(i in 1:nrow(pontos)) {
                          fun = "mode")
   
   writeRaster(x = project(ras_beauf,"epsg:4674"),
-              filename = paste0(novo_dir, "/Beauf/", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/BF_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
               overwrite = TRUE)
   
@@ -339,7 +331,7 @@ for(i in 1:nrow(pontos)) {
                          fun = "mode")
   
   writeRaster(x = project(ras_cober,"epsg:4674"),
-              filename = paste0(novo_dir, "/Cober/", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/CB_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
               overwrite = TRUE)
   
@@ -354,7 +346,7 @@ for(i in 1:nrow(pontos)) {
                          fun = "mode")
   
   writeRaster(x = project(ras_visib,"epsg:4674"),
-              filename = paste0(novo_dir, "/Visib/", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/VB_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
               overwrite = TRUE)
   
@@ -369,7 +361,7 @@ for(i in 1:nrow(pontos)) {
                          fun = "mode")
   
   writeRaster(x = project(ras_vento,"epsg:4674"),
-              filename = paste0(novo_dir, "/Refle/", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/RF_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
               overwrite = TRUE)
   
@@ -489,11 +481,7 @@ pontos <- pontos %>%
 novo_dir <- paste0(pasta_proj, "/4_export/6_clima/LINHA_3/DIARIO")
 
 # Criar uma pasta para cada parâmetro pare receber os arquivos diários
-dir.create(paste0(novo_dir, "/Vento"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/Beauf"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/Cober"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/Visib"), recursive = TRUE)
-dir.create(paste0(novo_dir, "/Refle"), recursive = TRUE)
+dir.create(novo_dir, recursive = TRUE)
 
 # Criando um stack que receberá todos os dados de cada parâmetro, em cima destes que será feita a média
 Rast_Vento <- rast(agua_ras)
@@ -520,7 +508,7 @@ for(i in 1:nrow(pontos)) {
                          fun = "mode")
   
   writeRaster(x = terra::project(ras_vento,"epsg:4674"),
-              filename = paste0(novo_dir, "/Vento/", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/VT_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
               overwrite = TRUE)
   
@@ -535,7 +523,7 @@ for(i in 1:nrow(pontos)) {
                          fun = "mode")
   
   writeRaster(x = terra::project(ras_beauf,"epsg:4674"),
-              filename = paste0(novo_dir, "/Beauf/", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/BF_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
               overwrite = TRUE)
   
@@ -550,7 +538,7 @@ for(i in 1:nrow(pontos)) {
                          fun = "mode")
   
   writeRaster(x = terra::project(ras_cober,"epsg:4674"),
-              filename = paste0(novo_dir, "/Cober/", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/CB_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
               overwrite = TRUE)
   
@@ -565,7 +553,7 @@ for(i in 1:nrow(pontos)) {
                          fun = "mode")
   
   writeRaster(x = terra::project(ras_visib,"epsg:4674"),
-              filename = paste0(novo_dir, "/Visib/", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/VB_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
               overwrite = TRUE)
   
@@ -580,7 +568,7 @@ for(i in 1:nrow(pontos)) {
                          fun = "mode")
   
   writeRaster(x = terra::project(ras_vento,"epsg:4674"),
-              filename = paste0(novo_dir, "/Refle/", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+              filename = paste0(novo_dir, "/RF_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
                                 str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
               overwrite = TRUE)
   
