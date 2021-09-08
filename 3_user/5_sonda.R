@@ -34,18 +34,10 @@ bd_L1 <- readRDS(paste0(pasta_proj,"/4_export/1_banco/bd_L1.rds"))
 sonda <- bd_L1$sonda %>% group_by(saida) %>% nest
 
 # Definir o nome da pasta nova com o padrão de sempre
-novo_dir <- paste0(pasta_proj, "/4_export/5_sonda/LINHA_1/DIARIO")
+novo_dir <- paste0(pasta_proj, "/4_export/5_sonda/LINHA_1")
 
 # Criar uma pasta para cada parâmetro pare receber os arquivos diários
 dir.create(novo_dir, recursive = TRUE)
-
-# Criando um stack que receberá todos os dados de cada parâmetro, em cima destes que será feita a média
-Rast_Temp <- rast(agua_ras)
-Rast_Sal <- rast(agua_ras)
-Rast_OD <- rast(agua_ras)
-Rast_Turb <- rast(agua_ras)
-Rast_pH <- rast(agua_ras)
-Rast_Pres <- rast(agua_ras)
 
 
 # Para cada saida em que houve coleta de sonda, será feito o seguinte
@@ -60,145 +52,89 @@ for (i in 1:nrow(sonda)) {
   
   sonda_sv <- sonda_sv[,c(-9,-10)]
   
-  # Temperatura
+  # Criando os rasters
   ras_temp <- rasterize(x = sonda_sv[,"Temp"],
-                                    y = agua_ras,
-                                    field = "Temp",
-                                    fun = "mean",
-                                    na.rm = TRUE)
+                        y = agua_ras,
+                        field = "Temp",
+                        fun = "mean",
+                        na.rm = TRUE)
   
-  writeRaster(x = terra::project(ras_temp,"epsg:4674"),
-              filename = paste0(novo_dir, "/TP_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
-              overwrite = TRUE)
-  
-  names(ras_temp) <- str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10) 
-  add(Rast_Temp) <-  ras_temp
-  
-  
-  # Salinidade
   ras_sal <- rasterize(x = sonda_sv[,"Sal"],
                        y = agua_ras,
                        field = "Sal",
                        fun = "mean",
                        na.rm = TRUE)
   
-  writeRaster(x = terra::project(ras_sal,"epsg:4674"),
-              filename = paste0(novo_dir, "/SL_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
-              overwrite = TRUE)
-  
-  names(ras_sal) <- str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10) 
-  add(Rast_Sal) <-  ras_sal
-  
-  
-  # Oxigênio Dissolvido
   ras_od <- rasterize(x = sonda_sv[,"OD"],
                       y = agua_ras,
                       field = "OD",
                       fun = "mean",
                       na.rm = TRUE)
   
-  writeRaster(x = terra::project(ras_od,"epsg:4674"),
-              filename = paste0(novo_dir, "/OD_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
-              overwrite = TRUE)
-  
-  names(ras_od) <- str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10) 
-  add(Rast_OD) <-  ras_od
-  
-  
-  # Turbidez
   ras_turb <- rasterize(x = sonda_sv[,"Turb"],
                         y = agua_ras,
                         field = "Turb",
                         fun = "mean",
                         na.rm = TRUE)
   
-  writeRaster(x = terra::project(ras_turb,"epsg:4674"),
-              filename = paste0(novo_dir, "/TB_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
-              overwrite = TRUE)
-  
-  names(ras_turb) <- str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10) 
-  add(Rast_Turb) <-  ras_turb
-  
-  
-  # pH
   ras_ph <- rasterize(x = sonda_sv[,"pH"],
                       y = agua_ras,
                       field = "pH",
                       fun = "mean",
                       na.rm = TRUE)
   
-  writeRaster(x = terra::project(ras_ph,"epsg:4674"),
-              filename = paste0(novo_dir, "/PH_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
-              overwrite = TRUE)
-  
-  names(ras_ph) <- str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10) 
-  add(Rast_pH) <-  ras_ph
-  
-  
-  # Pressão Atmosférica
   ras_pres <- rasterize(x = sonda_sv[,"Pres"],
                         y = agua_ras,
                         field = "Pres",
                         fun = "mean",
                         na.rm = TRUE)
   
-  writeRaster(x = terra::project(ras_pres,"epsg:4674"),
-              filename = paste0(novo_dir, "/PA_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
+  # Definindo o nomes dos arquivos
+  arquivo_temp <- paste0(novo_dir, "/TP_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                         str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif")
+  arquivo_sal <- paste0(novo_dir, "/SL_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                        str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif")
+  arquivo_od <- paste0(novo_dir, "/OD_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                       str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif")
+  arquivo_turb <- paste0(novo_dir, "/TB_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                         str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif")
+  arquivo_ph <- paste0(novo_dir, "/PH_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                       str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif")
+  arquivo_pres <- paste0(novo_dir, "/PA_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                         str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif")
+  
+  
+  # Salvando os arquivos
+  writeRaster(x = terra::project(ras_temp,"epsg:4674"),
+              filename = arquivo_temp,
               overwrite = TRUE)
   
-  names(ras_pres) <- str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10) 
-  add(Rast_Pres) <-  ras_pres
+ writeRaster(x = terra::project(ras_sal,"epsg:4674"),
+              filename = arquivo_sal,
+              overwrite = TRUE)
   
+  writeRaster(x = terra::project(ras_od,"epsg:4674"),
+              filename = arquivo_od,
+              overwrite = TRUE)
+  
+  writeRaster(x = terra::project(ras_turb,"epsg:4674"),
+              filename = arquivo_turb,
+              overwrite = TRUE)
+  
+  writeRaster(x = terra::project(ras_ph,"epsg:4674"),
+              filename = arquivo_ph,
+              overwrite = TRUE)
+  
+  writeRaster(x = terra::project(ras_pres,"epsg:4674"),
+              filename = arquivo_pres,
+              overwrite = TRUE)
+  
+  # Barra de progresso
   pb <- txtProgressBar(min = 0, max = nrow(sonda), initial = 0, style =3)
   setTxtProgressBar(pb,i)
   
 }
 
-# Fazendo as médias de cada parâmetro
-rast_Temp <- mean(Rast_Temp, na.rm = TRUE)
-rast_Turb <- mean(Rast_Turb, na.rm = TRUE)
-rast_OD <- mean(Rast_OD, na.rm = TRUE)
-rast_pH <- mean(Rast_pH, na.rm = TRUE)
-rast_Pres <- mean(Rast_Pres, na.rm = TRUE)
-rast_Sal <- mean(Rast_Sal, na.rm = TRUE)
-
-
-# Definir o nome da pasta nova com o padrão de sempre
-novo_dir <- paste0(pasta_proj,"/4_export/5_sonda/LINHA_1/MEDIA/")
-
-# Criar a pasta propriamente dito
-dir.create(novo_dir, recursive = TRUE)
-
-# Nessa pasta, criar um arquivo tif, para cada parâmetro.
-writeRaster(x = rast_Temp,
-            filename = paste0(novo_dir,"/sonda_Temp.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = rast_Turb,
-            filename = paste0(novo_dir,"/sonda_Turb.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = rast_OD,
-            filename = paste0(novo_dir,"/sonda_OD.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = rast_pH,
-            filename = paste0(novo_dir,"/sonda_pH.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = rast_Pres,
-            filename = paste0(novo_dir,"/sonda_Pres.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = rast_Sal,
-            filename = paste0(novo_dir,"/sonda_Sal.tif"),
-            overwrite = TRUE)
 
 
 
@@ -236,18 +172,10 @@ bd_L2 <- readRDS(paste0(pasta_proj,"/4_export/1_banco/bd_L2.rds"))
 sonda <- bd_L2$sonda %>% group_by(saida) %>% nest
 
 # Definir o nome da pasta nova com o padrão de sempre
-novo_dir <- paste0(pasta_proj, "/4_export/5_sonda/LINHA_2/DIARIO")
+novo_dir <- paste0(pasta_proj, "/4_export/5_sonda/LINHA_2")
 
 # Criar uma pasta para cada parâmetro pare receber os arquivos diários
 dir.create(novo_dir, recursive = TRUE)
-
-# Criando um stack que receberá todos os dados de cada parâmetro, em cima destes que será feita a média
-Rast_Temp <- rast(agua_ras)
-Rast_Sal <- rast(agua_ras)
-Rast_OD <- rast(agua_ras)
-Rast_Turb <- rast(agua_ras)
-Rast_pH <- rast(agua_ras)
-Rast_Pres <- rast(agua_ras)
 
 
 # Para cada saida em que houve coleta de sonda, será feito o seguinte
@@ -262,145 +190,87 @@ for (i in 1:nrow(sonda)) {
   
   sonda_sv <- sonda_sv[,c(-9,-10)]
   
-  # Temperatura
+  # Criando os rasters
   ras_temp <- rasterize(x = sonda_sv[,"Temp"],
                         y = agua_ras,
                         field = "Temp",
                         fun = "mean",
                         na.rm = TRUE)
-     
-  writeRaster(x = terra::project(ras_temp,"epsg:4674"),
-              filename = paste0(novo_dir, "/TP_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
-              overwrite = TRUE)
   
-  names(ras_temp) <- str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10) 
-  add(Rast_Temp) <-  ras_temp
-  
-  
-  # Salinidade
   ras_sal <- rasterize(x = sonda_sv[,"Sal"],
                        y = agua_ras,
                        field = "Sal",
                        fun = "mean",
                        na.rm = TRUE)
-                         
-  writeRaster(x = terra::project(ras_sal,"epsg:4674"),
-              filename = paste0(novo_dir, "/SL_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
-              overwrite = TRUE)
   
-  names(ras_sal) <- str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10) 
-  add(Rast_Sal) <-  ras_sal
-  
-  
-  # Oxigênio Dissolvido
   ras_od <- rasterize(x = sonda_sv[,"OD"],
                       y = agua_ras,
                       field = "OD",
                       fun = "mean",
                       na.rm = TRUE)
   
-  writeRaster(x = terra::project(ras_od,"epsg:4674"),
-              filename = paste0(novo_dir, "/OD_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
-              overwrite = TRUE)
-  
-  names(ras_od) <- str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10) 
-  add(Rast_OD) <-  ras_od
-  
-  
-  # Turbidez
   ras_turb <- rasterize(x = sonda_sv[,"Turb"],
                         y = agua_ras,
                         field = "Turb",
                         fun = "mean",
                         na.rm = TRUE)
   
-  writeRaster(x = terra::project(ras_turb,"epsg:4674"),
-              filename = paste0(novo_dir, "/TB_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
-              overwrite = TRUE)
-  
-  names(ras_turb) <- str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10) 
-  add(Rast_Turb) <-  ras_turb
-  
-  
-  # pH
   ras_ph <- rasterize(x = sonda_sv[,"pH"],
                       y = agua_ras,
                       field = "pH",
                       fun = "mean",
                       na.rm = TRUE)
   
-  writeRaster(x = terra::project(ras_ph,"epsg:4674"),
-              filename = paste0(novo_dir, "/PH_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
-              overwrite = TRUE)
-  
-  names(ras_ph) <- str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10) 
-  add(Rast_pH) <-  ras_ph
-  
-  
-  # Pressão Atmosférica
   ras_pres <- rasterize(x = sonda_sv[,"Pres"],
                         y = agua_ras,
                         field = "Pres",
                         fun = "mean",
                         na.rm = TRUE)
   
-  writeRaster(x = terra::project(ras_pres,"epsg:4674"),
-              filename = paste0(novo_dir, "/PA_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
+  # Definindo o nomes dos arquivos
+  arquivo_temp <- paste0(novo_dir, "/TP_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                         str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif")
+  arquivo_sal <- paste0(novo_dir, "/SL_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                        str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif")
+  arquivo_od <- paste0(novo_dir, "/OD_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                       str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif")
+  arquivo_turb <- paste0(novo_dir, "/TB_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                         str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif")
+  arquivo_ph <- paste0(novo_dir, "/PH_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                       str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif")
+  arquivo_pres <- paste0(novo_dir, "/PA_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                         str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif")
+  
+  # Salvando os arquivos
+  writeRaster(x = terra::project(ras_temp,"epsg:4674"),
+              filename = arquivo_temp,
               overwrite = TRUE)
   
-  names(ras_pres) <- str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10) 
-  add(Rast_Pres) <-  ras_pres
+  writeRaster(x = terra::project(ras_sal,"epsg:4674"),
+              filename = arquivo_sal,
+              overwrite = TRUE)
+  
+  writeRaster(x = terra::project(ras_od,"epsg:4674"),
+              filename = arquivo_od,
+              overwrite = TRUE)
+  
+  writeRaster(x = terra::project(ras_turb,"epsg:4674"),
+              filename = arquivo_turb,
+              overwrite = TRUE)
+  
+  writeRaster(x = terra::project(ras_ph,"epsg:4674"),
+              filename = arquivo_ph,
+              overwrite = TRUE)
+  
+  writeRaster(x = terra::project(ras_pres,"epsg:4674"),
+              filename = arquivo_pres,
+              overwrite = TRUE)
+  
   
   pb <- txtProgressBar(min = 0, max = nrow(sonda), initial = 0, style =3)
   setTxtProgressBar(pb,i)
   
 }
-
-# Fazendo as médias de cada parâmetro
-rast_Temp <- mean(Rast_Temp, na.rm = TRUE)
-rast_Turb <- mean(Rast_Turb, na.rm = TRUE)
-rast_OD <- mean(Rast_OD, na.rm = TRUE)
-rast_pH <- mean(Rast_pH, na.rm = TRUE)
-rast_Pres <- mean(Rast_Pres, na.rm = TRUE)
-rast_Sal <- mean(Rast_Sal, na.rm = TRUE)
-
-
-# Definir o nome da pasta nova com o padrão de sempre
-novo_dir <- paste0(pasta_proj,"/4_export/5_sonda/LINHA_2/MEDIA/")
-
-# Criar a pasta propriamente dito
-dir.create(novo_dir, recursive = TRUE)
-
-# Nessa pasta, criar um arquivo tif, para cada parâmetro.
-writeRaster(x = rast_Temp,
-            filename = paste0(novo_dir,"/sonda_Temp.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = rast_Turb,
-            filename = paste0(novo_dir,"/sonda_Turb.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = rast_OD,
-            filename = paste0(novo_dir,"/sonda_OD.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = rast_pH,
-            filename = paste0(novo_dir,"/sonda_pH.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = rast_Pres,
-            filename = paste0(novo_dir,"/sonda_Pres.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = rast_Sal,
-            filename = paste0(novo_dir,"/sonda_Sal.tif"),
-            overwrite = TRUE)
 
 
 
@@ -438,18 +308,10 @@ bd_L3 <- readRDS(paste0(pasta_proj,"/4_export/1_banco/bd_L3.rds"))
 sonda <- bd_L3$sonda %>% group_by(saida) %>% nest
 
 # Definir o nome da pasta nova com o padrão de sempre
-novo_dir <- paste0(pasta_proj, "/4_export/5_sonda/LINHA_3/DIARIO")
+novo_dir <- paste0(pasta_proj, "/4_export/5_sonda/LINHA_3")
 
 # Criar uma pasta para cada parâmetro pare receber os arquivos diários
 dir.create(novo_dir, recursive = TRUE)
-
-# Criando um stack que receberá todos os dados de cada parâmetro, em cima destes que será feita a média
-Rast_Temp <- rast(agua_ras)
-Rast_Sal <- rast(agua_ras)
-Rast_OD <- rast(agua_ras)
-Rast_Turb <- rast(agua_ras)
-Rast_pH <- rast(agua_ras)
-Rast_Pres <- rast(agua_ras)
 
 
 # Para cada saida em que houve coleta de sonda, será feito o seguinte
@@ -464,144 +326,85 @@ for (i in 1:nrow(sonda)) {
   
   sonda_sv <- sonda_sv[,c(-1,-9,-10)]
   
-  # Temperatura
+  # Criando os rasters
   ras_temp <- rasterize(x = sonda_sv[,"Temp"],
                         y = agua_ras,
                         field = "Temp",
                         fun = "mean",
                         na.rm = TRUE)
   
-  writeRaster(x = terra::project(ras_temp,"epsg:4674"),
-              filename = paste0(novo_dir, "/TP_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
-              overwrite = TRUE)
-  
-  names(ras_temp) <- str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10) 
-  add(Rast_Temp) <-  ras_temp
-  
-  
-  # Salinidade
   ras_sal <- rasterize(x = sonda_sv[,"Sal"],
                        y = agua_ras,
                        field = "Sal",
                        fun = "mean",
                        na.rm = TRUE)
   
- 
-  writeRaster(x = terra::project(ras_sal,"epsg:4674"),
-              filename = paste0(novo_dir, "/SL_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
-              overwrite = TRUE)
-  
-  names(ras_sal) <- str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10) 
-  add(Rast_Sal) <-  ras_sal
-  
-  
-  # Oxigênio Dissolvido
   ras_od <- rasterize(x = sonda_sv[,"OD"],
                       y = agua_ras,
                       field = "OD",
                       fun = "mean",
                       na.rm = TRUE)
   
-  writeRaster(x = terra::project(ras_od,"epsg:4674"),
-              filename = paste0(novo_dir, "/OD_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
-              overwrite = TRUE)
-  
-  names(ras_od) <- str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10) 
-  add(Rast_OD) <-  ras_od
-  
-  
-  # Turbidez
   ras_turb <- rasterize(x = sonda_sv[,"Turb"],
                         y = agua_ras,
                         field = "Turb",
                         fun = "mean",
                         na.rm = TRUE)
-
-  writeRaster(x = terra::project(ras_turb,"epsg:4674"),
-              filename = paste0(novo_dir, "/TB_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
-              overwrite = TRUE)
   
-  names(ras_turb) <- str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10) 
-  add(Rast_Turb) <-  ras_turb
-  
-  
-  # pH
   ras_ph <- rasterize(x = sonda_sv[,"pH"],
                       y = agua_ras,
                       field = "pH",
                       fun = "mean",
                       na.rm = TRUE)
-
-  writeRaster(x = terra::project(ras_ph,"epsg:4674"),
-              filename = paste0(novo_dir, "/PH_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
-              overwrite = TRUE)
   
-  names(ras_ph) <- str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10) 
-  add(Rast_pH) <-  ras_ph
-  
-  
-  # Pressão Atmosférica
   ras_pres <- rasterize(x = sonda_sv[,"Pres"],
                         y = agua_ras,
                         field = "Pres",
                         fun = "mean",
                         na.rm = TRUE)
-
-  writeRaster(x = terra::project(ras_pres,"epsg:4674"),
-              filename = paste0(novo_dir, "/PA_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif"),
+  
+  # Definindo o nomes dos arquivos
+  arquivo_temp <- paste0(novo_dir, "/TP_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                         str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif")
+  arquivo_sal <- paste0(novo_dir, "/SL_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                        str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif")
+  arquivo_od <- paste0(novo_dir, "/OD_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                       str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif")
+  arquivo_turb <- paste0(novo_dir, "/TB_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                         str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif")
+  arquivo_ph <- paste0(novo_dir, "/PH_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                       str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif")
+  arquivo_pres <- paste0(novo_dir, "/PA_", str_pad(sonda[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                         str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10), ".tif")
+  
+  
+  # Salvando os arquivos
+  writeRaster(x = terra::project(ras_temp,"epsg:4674"),
+              filename = arquivo_temp,
               overwrite = TRUE)
   
-  names(ras_pres) <- str_sub(str_replace_all(sonda[[2]][[i]]$datahora_SONDA[[1]], "-", "_"),1, 10) 
-  add(Rast_Pres) <-  ras_pres
+  writeRaster(x = terra::project(ras_sal,"epsg:4674"),
+              filename = arquivo_sal,
+              overwrite = TRUE)
+  
+  writeRaster(x = terra::project(ras_od,"epsg:4674"),
+              filename = arquivo_od,
+              overwrite = TRUE)
+  
+  writeRaster(x = terra::project(ras_turb,"epsg:4674"),
+              filename = arquivo_turb,
+              overwrite = TRUE)
+  
+  writeRaster(x = terra::project(ras_ph,"epsg:4674"),
+              filename = arquivo_ph,
+              overwrite = TRUE)
+  
+  writeRaster(x = terra::project(ras_pres,"epsg:4674"),
+              filename = arquivo_pres,
+              overwrite = TRUE)
+  
   
   pb <- txtProgressBar(min = 0, max = nrow(sonda), initial = 0, style =3)
   setTxtProgressBar(pb,i)
   
 }
-
-# Fazendo as médias de cada parâmetro
-rast_Temp <- mean(Rast_Temp, na.rm = TRUE)
-rast_Turb <- mean(Rast_Turb, na.rm = TRUE)
-rast_OD <- mean(Rast_OD, na.rm = TRUE)
-rast_pH <- mean(Rast_pH, na.rm = TRUE)
-rast_Pres <- mean(Rast_Pres, na.rm = TRUE)
-rast_Sal <- mean(Rast_Sal, na.rm = TRUE)
-
-
-# Definir o nome da pasta nova com o padrão de sempre
-novo_dir <- paste0(pasta_proj,"/4_export/5_sonda/LINHA_3/MEDIA/")
-
-# Criar a pasta propriamente dito
-dir.create(novo_dir, recursive = TRUE)
-
-# Nessa pasta, criar um arquivo tif, para cada parâmetro.
-writeRaster(x = rast_Temp,
-            filename = paste0(novo_dir,"/sonda_Temp.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = rast_Turb,
-            filename = paste0(novo_dir,"/sonda_Turb.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = rast_OD,
-            filename = paste0(novo_dir,"/sonda_OD.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = rast_pH,
-            filename = paste0(novo_dir,"/sonda_pH.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = rast_Pres,
-            filename = paste0(novo_dir,"/sonda_Pres.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = rast_Sal,
-            filename = paste0(novo_dir,"/sonda_Sal.tif"),
-            overwrite = TRUE)
-
