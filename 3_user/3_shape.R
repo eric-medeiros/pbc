@@ -120,7 +120,6 @@ linha_sf <- pontos_sf %>%
   group_by(saida) %>%
   summarise(do_union = FALSE) %>%
   st_cast("LINESTRING") %>%
-  st_intersection(y = agua_sf) %>%
   select(saida) %>%
   as_tibble() %>%
   left_join(dados_rotas[1:10]%>%

@@ -26,7 +26,6 @@ caminho_RDS_1 <-  paste0(pasta_proj, "/4_export/1_banco/bd_L1.rds")
 # Salvando RDS - Confira na pasta results/RDS
 saveRDS(object = bd_L1, file = caminho_RDS_1)
 
-install.packages(, dependencies - TRUE)
 
 ## Linha 2 ----
 
