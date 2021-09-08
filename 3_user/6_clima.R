@@ -28,10 +28,12 @@ agua_ras <- rasterize(agua_proj, agua_im)
 bd_L1 <- readRDS(paste0(pasta_proj,"/4_export/1_banco/bd_L1.rds"))
 
 # Definindo dados de clima com coordenadas para os pontos
-dados <- bd_L1$clima %>%
+dados <- bd_L1$amostragens %>%
   group_by(saida) %>%
+  transmute(int_amos = interval(datahora_I, datahora_F)) %>%
+  right_join(bd_L1$clima, by = "saida") %>%
   mutate(int_clima = interval(datahora_I, datahora_F)) %>%
-  dplyr::select(1,2,12:16,18) %>%
+  dplyr::select(1,3,13:17,19,2) %>%
   drop_na() %>%
   ungroup() %>%
   rowid_to_column("n_clima") %>%
@@ -47,7 +49,8 @@ pontos <- list()
 
 for(i in 1:nrow(dados)) {
   
-  pontos[[i]] <- rotas[rotas$datahora_ROTA %within% dados[[2]][[i]]$int_clima,c(3:4)]
+  pontos[[i]] <- rotas[rotas$datahora_ROTA %within% dados[[2]][[i]]$int_clima,]
+  pontos[[i]] <- pontos[[i]][pontos[[i]]$datahora_ROTA %within% dados[[2]][[i]]$int_amos,c(3:4)]
   
   pontos[[i]]$n_clima <- dados[[1]][[i]]
   
@@ -64,17 +67,11 @@ pontos <- pontos %>%
 
   
 # Definir o nome da pasta nova com o padrão de sempre
-novo_dir <- paste0(pasta_proj, "/4_export/6_clima/LINHA_1/DIARIO")
+novo_dir <- paste0(pasta_proj, "/4_export/6_clima/LINHA_1")
 
 # Criar uma pasta para cada parâmetro pare receber os arquivos diários
 dir.create(novo_dir, recursive = TRUE)
 
-# Criando um stack que receberá todos os dados de cada parâmetro, em cima destes que será feita a média
-Rast_Vento <- rast(agua_ras)
-Rast_Beauf <- rast(agua_ras)
-Rast_Cober <- rast(agua_ras)
-Rast_Visib <- rast(agua_ras)
-Rast_Refle <- rast(agua_ras)
 
 for(i in 1:nrow(pontos)) {
   
@@ -87,80 +84,66 @@ for(i in 1:nrow(pontos)) {
     
   clima_sv <- clima_sv[,c(-1,-2)]
   
-  # Vento
+  
+  # Criando os rasters
   ras_vento <- rasterize(x = clima_sv[,"veloc_vento"],
                          y = agua_ras,
                          field = "veloc_vento",
                          fun = "mode")
   
-  writeRaster(x = project(ras_vento,"epsg:4674"),
-              filename = paste0(novo_dir, "/VT_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
-              overwrite = TRUE)
-  
-  names(ras_vento) <- pontos[[2]][[1]]$data[[i]] 
-  add(Rast_Vento) <-  ras_vento
-  
-  
-  # Beauf
   ras_beauf <- rasterize(x = clima_sv[,"beaufort"],
                          y = agua_ras,
                          field = "beaufort",
                          fun = "mode")
   
-  writeRaster(x = project(ras_beauf,"epsg:4674"),
-              filename = paste0(novo_dir, "/BF_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
-              overwrite = TRUE)
-  
-  names(ras_beauf) <- pontos[[2]][[1]]$data[[i]] 
-  add(Rast_Beauf) <-  ras_beauf
-  
-  
-  # Cober
   ras_cober <- rasterize(x = clima_sv[,"cobert_nuvens"],
                          y = agua_ras,
                          field = "cobert_nuvens",
                          fun = "mode")
-
-  writeRaster(x = project(ras_cober,"epsg:4674"),
-              filename = paste0(novo_dir, "/CB_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
-              overwrite = TRUE)
   
-  names(ras_cober) <- pontos[[2]][[1]]$data[[i]] 
-  add(Rast_Cober) <-  ras_cober
-  
-  
-  # Visib
   ras_visib <- rasterize(x = clima_sv[,"visibilidade"],
                          y = agua_ras,
                          field = "visibilidade",
                          fun = "mode")
   
-  writeRaster(x = project(ras_visib,"epsg:4674"),
-              filename = paste0(novo_dir, "/VB_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
-              overwrite = TRUE)
-  
-  names(ras_visib) <- pontos[[2]][[1]]$data[[i]] 
-  add(Rast_Visib) <-  ras_visib
-  
-  
-  # Refle
   ras_refle <- rasterize(x = clima_sv[,"reflexo"],
                          y = agua_ras,
                          field = "reflexo",
                          fun = "mode")
   
+  # Definindo o nomes dos arquivos
+  arquivo_vt <- paste0(novo_dir, "/VT_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                       str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif")
+  arquivo_bf <- paste0(novo_dir, "/BF_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                       str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif")
+  arquivo_cb <- paste0(novo_dir, "/CB_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                       str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif")
+  arquivo_vb <- paste0(novo_dir, "/VB_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                       str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif")
+  arquivo_rf <- paste0(novo_dir, "/RF_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                       str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif")
+  
+  
+  # Salvando os arquivos
   writeRaster(x = project(ras_vento,"epsg:4674"),
-              filename = paste0(novo_dir, "/RF_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
+              filename = arquivo_vt,
               overwrite = TRUE)
   
-  names(ras_refle) <- pontos[[2]][[1]]$data[[i]] 
-  add(Rast_Refle) <-  ras_refle
+  writeRaster(x = project(ras_beauf,"epsg:4674"),
+              filename = arquivo_bf,
+              overwrite = TRUE)
   
+  writeRaster(x = project(ras_cober,"epsg:4674"),
+              filename = arquivo_cb,
+              overwrite = TRUE)
+  
+  writeRaster(x = project(ras_visib,"epsg:4674"),
+              filename = arquivo_vb,
+              overwrite = TRUE)
+  
+  writeRaster(x = project(ras_vento,"epsg:4674"),
+              filename = arquivo_rf,
+              overwrite = TRUE)
   
   # Barra de progresso
   pb <- txtProgressBar(min = 0, max = nrow(pontos), initial = 0, style =3)
@@ -168,41 +151,6 @@ for(i in 1:nrow(pontos)) {
   
 }
 
-
-# Fazendo as médias de cada parâmetro
-med_Vento <- mean(Rast_Vento, na.rm = TRUE)
-med_Beauf <- mean(Rast_Beauf, na.rm = TRUE)
-med_Cober <- mean(Rast_Cober, na.rm = TRUE)
-med_Visib <- mean(Rast_Visib, na.rm = TRUE)
-med_Refle <- mean(Rast_Refle, na.rm = TRUE)
-
-
-# Definir o nome da pasta nova com o padrão de sempre
-novo_dir <- paste0(pasta_proj,"/4_export/6_clima/LINHA_1/MEDIA/")
-
-# Criar a pasta propriamente dito
-dir.create(novo_dir, recursive = TRUE)
-
-# Nessa pasta, criar um arquivo tif, para cada parâmetro.
-writeRaster(x = med_Vento,
-            filename = paste0(novo_dir,"/clima_Vent.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = med_Beauf,
-            filename = paste0(novo_dir,"/clima_Beauf.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = med_Cober,
-            filename = paste0(novo_dir,"/clima_Cober.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = med_Visib,
-            filename = paste0(novo_dir,"/clima_Visib.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = med_Refle,
-            filename = paste0(novo_dir,"/clima_Refle.tif"),
-            overwrite = TRUE)
 
 
 # Linha 2 ----
@@ -235,10 +183,12 @@ agua_ras <- rasterize(agua_proj, agua_im)
 bd_L2 <- readRDS(paste0(pasta_proj,"/4_export/1_banco/bd_L2.rds"))
 
 # Definindo dados de clima com coordenadas para os pontos
-dados <- bd_L2$clima %>%
+dados <- bd_L2$amostragens %>%
   group_by(saida) %>%
+  transmute(int_amos = interval(datahora_I, datahora_F)) %>%
+  right_join(bd_L2$clima, by = "saida") %>%
   mutate(int_clima = interval(datahora_I, datahora_F)) %>%
-  dplyr::select(1,2,12:16,18) %>%
+  dplyr::select(1,3,13:17,19,2) %>%
   drop_na() %>%
   ungroup() %>%
   rowid_to_column("n_clima") %>%
@@ -254,7 +204,8 @@ pontos <- list()
 
 for(i in 1:nrow(dados)) {
   
-  pontos[[i]] <- rotas[rotas$datahora_ROTA %within% dados[[2]][[i]]$int_clima,c(3:4)]
+  pontos[[i]] <- rotas[rotas$datahora_ROTA %within% dados[[2]][[i]]$int_clima,]
+  pontos[[i]] <- pontos[[i]][pontos[[i]]$datahora_ROTA %within% dados[[2]][[i]]$int_amos,c(3:4)]
   
   pontos[[i]]$n_clima <- dados[[1]][[i]]
   
@@ -271,17 +222,11 @@ pontos <- pontos %>%
 
 
 # Definir o nome da pasta nova com o padrão de sempre
-novo_dir <- paste0(pasta_proj, "/4_export/6_clima/LINHA_2/DIARIO")
+novo_dir <- paste0(pasta_proj, "/4_export/6_clima/LINHA_2")
 
 # Criar uma pasta para cada parâmetro pare receber os arquivos diários
 dir.create(novo_dir, recursive = TRUE)
 
-# Criando um stack que receberá todos os dados de cada parâmetro, em cima destes que será feita a média
-Rast_Vento <- rast(agua_ras)
-Rast_Beauf <- rast(agua_ras)
-Rast_Cober <- rast(agua_ras)
-Rast_Visib <- rast(agua_ras)
-Rast_Refle <- rast(agua_ras)
 
 for(i in 1:nrow(pontos)) {
   
@@ -294,80 +239,64 @@ for(i in 1:nrow(pontos)) {
   
   clima_sv <- clima_sv[,c(-1,-2)]
   
-  # Vento
+  # Criando os rasters
   ras_vento <- rasterize(x = clima_sv[,"veloc_vento"],
                          y = agua_ras,
                          field = "veloc_vento",
                          fun = "mode")
   
-  writeRaster(x = project(ras_vento,"epsg:4674"),
-              filename = paste0(novo_dir, "/VT_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
-              overwrite = TRUE)
-  
-  names(ras_vento) <- pontos[[2]][[1]]$data[[i]] 
-  add(Rast_Vento) <-  ras_vento
-  
-  
-  # Beauf
   ras_beauf <- rasterize(x = clima_sv[,"beaufort"],
                          y = agua_ras,
                          field = "beaufort",
                          fun = "mode")
   
-  writeRaster(x = project(ras_beauf,"epsg:4674"),
-              filename = paste0(novo_dir, "/BF_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
-              overwrite = TRUE)
-  
-  names(ras_beauf) <- pontos[[2]][[1]]$data[[i]] 
-  add(Rast_Beauf) <-  ras_beauf
-  
-  
-  # Cober
   ras_cober <- rasterize(x = clima_sv[,"cobert_nuvens"],
                          y = agua_ras,
                          field = "cobert_nuvens",
                          fun = "mode")
   
-  writeRaster(x = project(ras_cober,"epsg:4674"),
-              filename = paste0(novo_dir, "/CB_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
-              overwrite = TRUE)
-  
-  names(ras_cober) <- pontos[[2]][[1]]$data[[i]] 
-  add(Rast_Cober) <-  ras_cober
-  
-  
-  # Visib
   ras_visib <- rasterize(x = clima_sv[,"visibilidade"],
                          y = agua_ras,
                          field = "visibilidade",
                          fun = "mode")
   
-  writeRaster(x = project(ras_visib,"epsg:4674"),
-              filename = paste0(novo_dir, "/VB_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
-              overwrite = TRUE)
-  
-  names(ras_visib) <- pontos[[2]][[1]]$data[[i]] 
-  add(Rast_Visib) <-  ras_visib
-  
-  
-  # Refle
   ras_refle <- rasterize(x = clima_sv[,"reflexo"],
                          y = agua_ras,
                          field = "reflexo",
                          fun = "mode")
   
+  # Definindo o nomes dos arquivos
+  arquivo_vt <- paste0(novo_dir, "/VT_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                       str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif")
+  arquivo_bf <- paste0(novo_dir, "/BF_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                       str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif")
+  arquivo_cb <- paste0(novo_dir, "/CB_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                       str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif")
+  arquivo_vb <- paste0(novo_dir, "/VB_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                       str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif")
+  arquivo_rf <- paste0(novo_dir, "/RF_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                       str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif")
+  
+  # Salvando os arquivos
   writeRaster(x = project(ras_vento,"epsg:4674"),
-              filename = paste0(novo_dir, "/RF_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
+              filename = arquivo_vt,
               overwrite = TRUE)
   
-  names(ras_refle) <- pontos[[2]][[1]]$data[[i]] 
-  add(Rast_Refle) <-  ras_refle
+  writeRaster(x = project(ras_beauf,"epsg:4674"),
+              filename = arquivo_bf,
+              overwrite = TRUE)
   
+  writeRaster(x = project(ras_cober,"epsg:4674"),
+              filename = arquivo_cb,
+              overwrite = TRUE)
+  
+  writeRaster(x = project(ras_visib,"epsg:4674"),
+              filename = arquivo_vb,
+              overwrite = TRUE)
+  
+  writeRaster(x = project(ras_vento,"epsg:4674"),
+              filename = arquivo_rf,
+              overwrite = TRUE)
   
   # Barra de progresso
   pb <- txtProgressBar(min = 0, max = nrow(pontos), initial = 0, style =3)
@@ -376,40 +305,6 @@ for(i in 1:nrow(pontos)) {
 }
 
 
-# Fazendo as médias de cada parâmetro
-med_Vento <- mean(Rast_Vento, na.rm = TRUE)
-med_Beauf <- mean(Rast_Beauf, na.rm = TRUE)
-med_Cober <- mean(Rast_Cober, na.rm = TRUE)
-med_Visib <- mean(Rast_Visib, na.rm = TRUE)
-med_Refle <- mean(Rast_Refle, na.rm = TRUE)
-
-
-# Definir o nome da pasta nova com o padrão de sempre
-novo_dir <- paste0(pasta_proj,"/4_export/6_clima/LINHA_2/MEDIA/")
-
-# Criar a pasta propriamente dito
-dir.create(novo_dir, recursive = TRUE)
-
-# Nessa pasta, criar um arquivo tif, para cada parâmetro.
-writeRaster(x = med_Vento,
-            filename = paste0(novo_dir,"/clima_Vent.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = med_Beauf,
-            filename = paste0(novo_dir,"/clima_Beauf.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = med_Cober,
-            filename = paste0(novo_dir,"/clima_Cober.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = med_Visib,
-            filename = paste0(novo_dir,"/clima_Visib.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = med_Refle,
-            filename = paste0(novo_dir,"/clima_Refle.tif"),
-            overwrite = TRUE)
 
 
 # Linha 3 ----
@@ -442,10 +337,12 @@ agua_ras <- rasterize(agua_proj, agua_im)
 bd_L3 <- readRDS(paste0(pasta_proj,"/4_export/1_banco/bd_L3.rds"))
 
 # Definindo dados de clima com coordenadas para os pontos
-dados <- bd_L3$clima %>%
+dados <- bd_L3$estacoes %>%
   group_by(saida) %>%
+  transmute(int_esta = interval(datahora_I, datahora_F)) %>%
+  right_join(bd_L3$clima, by = "saida") %>%
   mutate(int_clima = interval(datahora_I, datahora_F)) %>%
-  dplyr::select(1,2,12:16,19) %>%
+  dplyr::select(1,3,13:17,20,2) %>%
   drop_na() %>%
   ungroup() %>%
   rowid_to_column("n_clima") %>%
@@ -461,7 +358,8 @@ pontos <- list()
 
 for(i in 1:nrow(dados)) {
   
-  pontos[[i]] <- rotas[rotas$datahora_ROTA %within% dados[[2]][[i]]$int_clima,c(3:4)]
+  pontos[[1]] <- rotas[rotas$datahora_ROTA %within% dados[[2]][[1]]$int_clima,]
+  pontos[[1]] <- pontos[[i]][pontos[[i]]$datahora_ROTA %within% dados[[2]][[i]]$int_esta,c(3:4)]
   
   pontos[[i]]$n_clima <- dados[[1]][[i]]
   
@@ -478,17 +376,11 @@ pontos <- pontos %>%
 
 
 # Definir o nome da pasta nova com o padrão de sempre
-novo_dir <- paste0(pasta_proj, "/4_export/6_clima/LINHA_3/DIARIO")
+novo_dir <- paste0(pasta_proj, "/4_export/6_clima/LINHA_3")
 
 # Criar uma pasta para cada parâmetro pare receber os arquivos diários
 dir.create(novo_dir, recursive = TRUE)
 
-# Criando um stack que receberá todos os dados de cada parâmetro, em cima destes que será feita a média
-Rast_Vento <- rast(agua_ras)
-Rast_Beauf <- rast(agua_ras)
-Rast_Cober <- rast(agua_ras)
-Rast_Visib <- rast(agua_ras)
-Rast_Refle <- rast(agua_ras)
 
 for(i in 1:nrow(pontos)) {
   
@@ -496,84 +388,70 @@ for(i in 1:nrow(pontos)) {
   clima_sv <- pontos[[2]][[i]][-10] %>%
     vect(c("lng","lat"), crs ="epsg:4326") %>%
     terra::project("epsg:32723") %>%
-    terra::buffer(500) %>%
+    terra::buffer(1000) %>%
     crop(agua_proj)
   
   clima_sv <- clima_sv[,c(-1,-2)]
   
-  # Vento
+  # Criando os rasters
   ras_vento <- rasterize(x = clima_sv[,"veloc_vento"],
                          y = agua_ras,
                          field = "veloc_vento",
                          fun = "mode")
   
-  writeRaster(x = terra::project(ras_vento,"epsg:4674"),
-              filename = paste0(novo_dir, "/VT_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
-              overwrite = TRUE)
-  
-  names(ras_vento) <- pontos[[2]][[1]]$data[[i]] 
-  add(Rast_Vento) <-  ras_vento
-  
-  
-  # Beauf
   ras_beauf <- rasterize(x = clima_sv[,"beaufort"],
                          y = agua_ras,
                          field = "beaufort",
                          fun = "mode")
   
-  writeRaster(x = terra::project(ras_beauf,"epsg:4674"),
-              filename = paste0(novo_dir, "/BF_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
-              overwrite = TRUE)
-  
-  names(ras_beauf) <- pontos[[2]][[1]]$data[[i]] 
-  add(Rast_Beauf) <-  ras_beauf
-  
-  
-  # Cober
   ras_cober <- rasterize(x = clima_sv[,"cobert_nuvens"],
                          y = agua_ras,
                          field = "cobert_nuvens",
                          fun = "mode")
   
-  writeRaster(x = terra::project(ras_cober,"epsg:4674"),
-              filename = paste0(novo_dir, "/CB_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
-              overwrite = TRUE)
-  
-  names(ras_cober) <- pontos[[2]][[1]]$data[[i]] 
-  add(Rast_Cober) <-  ras_cober
-  
-  
-  # Visib
   ras_visib <- rasterize(x = clima_sv[,"visibilidade"],
                          y = agua_ras,
                          field = "visibilidade",
                          fun = "mode")
   
-  writeRaster(x = terra::project(ras_visib,"epsg:4674"),
-              filename = paste0(novo_dir, "/VB_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
-              overwrite = TRUE)
-  
-  names(ras_visib) <- pontos[[2]][[1]]$data[[i]] 
-  add(Rast_Visib) <-  ras_visib
-  
-  
-  # Refle
   ras_refle <- rasterize(x = clima_sv[,"reflexo"],
                          y = agua_ras,
                          field = "reflexo",
                          fun = "mode")
   
-  writeRaster(x = terra::project(ras_vento,"epsg:4674"),
-              filename = paste0(novo_dir, "/RF_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
-                                str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif"),
+  # Definindo o nomes dos arquivos
+  arquivo_vt <- paste0(novo_dir, "/VT_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                       str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif")
+  arquivo_bf <- paste0(novo_dir, "/BF_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                       str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif")
+  arquivo_cb <- paste0(novo_dir, "/CB_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                       str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif")
+  arquivo_vb <- paste0(novo_dir, "/VB_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                       str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif")
+  arquivo_rf <- paste0(novo_dir, "/RF_", str_pad(pontos[[1]][[i]],width = 3, side = "left", pad = "0"), "_",
+                       str_replace_all(pontos[[2]][[i]]$data[[1]], "-", "_"), ".tif")
+  
+  
+  # Salvando os arquivos
+  writeRaster(x = project(ras_vento,"epsg:4674"),
+              filename = arquivo_vt,
               overwrite = TRUE)
   
-  names(ras_refle) <- pontos[[2]][[1]]$data[[i]] 
-  add(Rast_Refle) <-  ras_refle
+  writeRaster(x = project(ras_beauf,"epsg:4674"),
+              filename = arquivo_bf,
+              overwrite = TRUE)
+  
+  writeRaster(x = project(ras_cober,"epsg:4674"),
+              filename = arquivo_cb,
+              overwrite = TRUE)
+  
+  writeRaster(x = project(ras_visib,"epsg:4674"),
+              filename = arquivo_vb,
+              overwrite = TRUE)
+  
+  writeRaster(x = project(ras_vento,"epsg:4674"),
+              filename = arquivo_rf,
+              overwrite = TRUE)
   
   
   # Barra de progresso
@@ -583,38 +461,4 @@ for(i in 1:nrow(pontos)) {
 }
 
 
-# Fazendo as médias de cada parâmetro
-med_Vento <- mean(Rast_Vento, na.rm = TRUE)
-med_Beauf <- mean(Rast_Beauf, na.rm = TRUE)
-med_Cober <- mean(Rast_Cober, na.rm = TRUE)
-med_Visib <- mean(Rast_Visib, na.rm = TRUE)
-med_Refle <- mean(Rast_Refle, na.rm = TRUE)
-
-
-# Definir o nome da pasta nova com o padrão de sempre
-novo_dir <- paste0(pasta_proj,"/4_export/6_clima/LINHA_3/MEDIA/")
-
-# Criar a pasta propriamente dito
-dir.create(novo_dir, recursive = TRUE)
-
-# Nessa pasta, criar um arquivo tif, para cada parâmetro.
-writeRaster(x = med_Vento,
-            filename = paste0(novo_dir,"/clima_Vent.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = med_Beauf,
-            filename = paste0(novo_dir,"/clima_Beauf.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = med_Cober,
-            filename = paste0(novo_dir,"/clima_Cober.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = med_Visib,
-            filename = paste0(novo_dir,"/clima_Visib.tif"),
-            overwrite = TRUE)
-
-writeRaster(x = med_Refle,
-            filename = paste0(novo_dir,"/clima_Refle.tif"),
-            overwrite = TRUE)
 
