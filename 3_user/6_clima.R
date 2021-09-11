@@ -358,8 +358,8 @@ pontos <- list()
 
 for(i in 1:nrow(dados)) {
   
-  pontos[[1]] <- rotas[rotas$datahora_ROTA %within% dados[[2]][[1]]$int_clima,]
-  pontos[[1]] <- pontos[[i]][pontos[[i]]$datahora_ROTA %within% dados[[2]][[i]]$int_esta,c(3:4)]
+  pontos[[i]] <- rotas[rotas$datahora_ROTA %within% dados[[2]][[i]]$int_clima,]
+  pontos[[i]] <- pontos[[i]][pontos[[i]]$datahora_ROTA %within% dados[[2]][[i]]$int_esta,c(3:4)]
   
   pontos[[i]]$n_clima <- dados[[1]][[i]]
   
