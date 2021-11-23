@@ -14,7 +14,7 @@ le_planilha_L1 <- function(pasta_L1) {
   
   amostragens <- read_excel(arquivo_campo_L1, sheet = 2, 
                             col_types = c("text", "text", "text", "text", "text", 
-                                          "text"))
+                                          "text", "text"))
   
   clima <- read_excel(arquivo_campo_L1, sheet = 3, 
                       col_types = c("text", "date", "text", "text", "text", 
@@ -34,10 +34,10 @@ le_planilha_L1 <- function(pasta_L1) {
                           col_types = c("text", "date", "text", "date", "text",
                                         "text", "text", "text"))
   
-  fotos <- read_excel(arquivo_campo_L1, sheet = 7, 
+ identificacoes <- read_excel(arquivo_campo_L1, sheet = 7, 
                       col_types = c("text", "date", "text", "text", "text", 
                                     "text", "text", "text", "text", "text",
-                                    "text", "text")
+                                    "text")
   )
   
   saidas$saida <- as.character(saidas$saida)
@@ -52,6 +52,7 @@ le_planilha_L1 <- function(pasta_L1) {
   
   amostragens$saida <- as.character(amostragens$saida)
   amostragens$data <- dmy(amostragens$data)
+  amostragens$exp <- as.character(amostragens$exp)
   amostragens$rota <- as.character(amostragens$rota)
   amostragens$WP_I <- str_pad(amostragens$WP_I, 3, "left", "0")
   amostragens$WP_F <- str_pad(amostragens$WP_F, 3, "left", "0")
@@ -101,17 +102,16 @@ le_planilha_L1 <- function(pasta_L1) {
   WP_extras <- WP_extras %>%
     dplyr::select(c(1:4, 8, 5:7))
   
-  fotos$saida <- as.character(fotos$saida)
-  fotos$datahora <- ymd_hms(fotos$data)
-  fotos$grupo <- as.character(fotos$grupo)
-  fotos$pasta <- as.character(fotos$pasta)
-  fotos$arquivo <- as.character(fotos$arquivo)
-  fotos$ID <- as.character(fotos$ID)
-  fotos$quali_F <- as.character(fotos$quali_F)
-  fotos$quali_M <- as.character(fotos$quali_M)
-  fotos$lado <- as.character(fotos$lado)
-  fotos$seq <- as.character(fotos$seq)
-  fotos$filhote_ac <- as.character(fotos$filhote_ac)
+  identificacoes$saida <- as.character(identificacoes$saida)
+  identificacoes$data <- ymd(identificacoes$data)
+  identificacoes$grupo <- as.character(identificacoes$grupo)
+  identificacoes$arquivo <- as.character(identificacoes$arquivo)
+  identificacoes$ID <- as.character(identificacoes$ID)
+  identificacoes$quali_F <- as.character(identificacoes$quali_F)
+  identificacoes$quali_M <- as.character(identificacoes$quali_M)
+  identificacoes$lado <- as.character(identificacoes$lado)
+  identificacoes$seq <- as.character(identificacoes$seq)
+  identificacoes$filhote_ac <- as.character(identificacoes$filhote_ac)
   
   
   #Junção de todas tabelas em uma lista
@@ -121,7 +121,7 @@ le_planilha_L1 <- function(pasta_L1) {
                    avistagens = avistagens,
                    pausas = pausas,
                    WP_extras = WP_extras,
-                   fotos = fotos)
+                   identificacoes = identificacoes)
   
   invisible(lista_L1)
   
