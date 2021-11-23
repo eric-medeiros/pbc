@@ -1,5 +1,8 @@
 # Linha 1 ----
 
+# Limpando o Global Environment 
+rm(list = ls())
+
 library(terra)
 library(dplyr)
 library(tibble)

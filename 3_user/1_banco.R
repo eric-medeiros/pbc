@@ -1,5 +1,8 @@
 # Scripts de como gerar os RDS
 
+# Limpando o Global Environment 
+rm(list = ls())
+
 ## Linha 1 ----
 
 # Pegando a pasta do projeto - vai ser diferente em cada PC, mas ele acha sozinho

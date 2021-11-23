@@ -1,5 +1,8 @@
 # Mapas de Calor Kernel
 
+# Limpando o Global Environment 
+rm(list = ls())
+
 library(sf)
 library(spatstat)
 library(maptools)
@@ -50,7 +53,7 @@ Window(grupos_ppp) <- as.owin(as.im(agua1_ras))
 unitname(grupos_ppp) <- c("metro", "metros")
 
 # Mudando unidade para km para que o kernel seja por km²
-grupos_ppp <- rescale(grupos_ppp, 1000, "km")
+grupos_ppp <- rescale.ppp(grupos_ppp, 1000, "km")
 
 # Removendo pontos duplicados
 grupos_ppp <- unique.ppp(grupos_ppp)
@@ -65,7 +68,7 @@ kernel_L1 <- (density.ppp(grupos_ppp,
                           weights = grupos_ppp$marks$tam_est))
 
 # Voltando para m nos eixos X e Y, mas o Z continua como km²
-kernel_L1 <- rescale(kernel_L1, .001, c("metro", "metros"))
+kernel_L1 <- rescale.im(kernel_L1, .001, c("metro", "metros"))
 
 # Rotulando o CRS no raster do kernel como WGS 84 projetada - pacote raster
 rast_proj <- raster(kernel_L1, crs = CRS("+init=epsg:32723"))
@@ -162,33 +165,37 @@ writeOGR(obj = p95_2,
 pasta_proj <- rprojroot::find_rstudio_root_file()
 
 # Abrindo shape da agua (tem que ter feito o "2_Gerando_SHP.R")
-agua_sf <- st_read(paste0(pasta_proj, "/1_data/SHAPES_AUX/Agua_L3.shp"))
+agua_sf_geral <- st_read(paste0(pasta_proj, "/1_data/SHAPES_AUX/Agua_L3.shp"))
+agua_sf_noite <- st_read(paste0(pasta_proj, "/1_data/SHAPES_AUX/Agua_L3_noite.shp"))
 
 # tranformando para EPSG 32723 - projetada/WGS 84/UTM zona23S - entre 48W e 42W
-agua_proj <- st_transform(agua_sf, 32723)
+agua_proj_geral <- st_transform(agua_sf_geral, 32723)
+agua_proj_noite <- st_transform(agua_sf_noite, 32723)
 
 # criando raster da agua transformada para projetada
-agua_ras <- raster(agua_proj)
+agua_ras_geral <- raster(agua_proj_geral)
+agua_ras_noite <- raster(agua_proj_noite)
 
 # definindo resolução de 250m
-res(agua_ras) <- 250
+res(agua_ras_geral) <- 250
+res(agua_ras_noite) <- 250
 
 # criando novo raster com o raster acima como valor - estranho, mas esse é plotável
-agua_ras <- rasterize(agua_proj, agua_ras)
+agua_ras_geral <- rasterize(agua_proj_geral, agua_ras_geral)
+agua_ras_noite <- rasterize(agua_proj_noite, agua_ras_noite)
 
 # Abrindo shape dos grupos, tem que ter rodado o 2_Gerando_SHP.R"
 estacoes_sf <- st_read("4_export/3_shape/PONTOS/L3_estacoes.shp")
 
+# GERAL
 est_unif_sf <- as.data.frame(estacoes_sf) %>%
   group_by(estacao) %>%
-  summarise(ASS_S = sum(num_ass, na.rm = TRUE),
+  filter(estacao != 13) %>%
+  summarise(ASS_P_H_M = sum(num_ass, na.rm = TRUE)/(sum(durac_s, na.rm = TRUE)/3600),
             geometry = geometry[1]) %>%
   ungroup() %>%
   dplyr::select(c(2,3)) %>%
   st_as_sf()
-
-# Menos estação 13  
-est_unif_sf <- est_unif_sf[-13,]
 
 # tranformando para EPSG 32723 - projetada/WGS 84/UTM zona23S - entre 48W e 42W
 estacoes_proj <- st_transform(est_unif_sf, 32723)
@@ -197,19 +204,19 @@ estacoes_proj <- st_transform(est_unif_sf, 32723)
 estacoes_ppp <- as.ppp(estacoes_proj)
 
 # Atribuindo o Window
-Window(estacoes_ppp) <- as.owin(as.im(agua_ras))
+Window(estacoes_ppp) <- as.owin(as.im(agua_ras_geral))
 
 # Atribuindo a unidade de metros, já que é UTM  
 unitname(estacoes_ppp) <- c("metro", "metros")
 
 # Mudando unidade para km para que o kernel seja por km²
-estacoes_ppp <- rescale(estacoes_ppp, 1000, "km")
+estacoes_ppp <- rescale.ppp(estacoes_ppp, 1000, "km")
 
 # Fazendo uma superfície de tendência para os números de assobios
 estacoes_im <- Smooth(estacoes_ppp, bw.smoothppp, sigma = c(hmin=0.5, hmax=0.8), kernel = "gaussian")
 
 # Voltando para m em X e Y. Z continua como km²; CRS como WGS 84 projetada - pacote raster
-assobios_im <- raster(rescale(estacoes_im, .001, c("metro", "metros")), crs = CRS("+init=epsg:32723"))
+assobios_im <- raster(rescale.im(estacoes_im, .001, c("metro", "metros")), crs = CRS("+init=epsg:32723"))
 names(assobios_im) <- "ASS"
 
 # Definir o nome da pasta nova com o padrão de sempre
@@ -218,7 +225,7 @@ novo_dir <- paste0(pasta_proj,"/4_export/4_interp/LINHA_3")
 # Criar a pasta propriamente dito
 dir.create(novo_dir, recursive = TRUE)
 
-# Salvando os raster do kernel
+# Salvando os raster PRINCIPAL do kernel
 writeRaster(assobios_im,
             filename = "4_export/4_interp/LINHA_3/L3_assobios.tif",
             format = "GTiff",

@@ -1,5 +1,8 @@
 ### Criando um SHP das avistagens com dados das avistagens e sonda como tabela de atributo
 
+# Limpando o Global Environment 
+rm(list = ls())
+
 library(magrittr)
 library(dplyr)
 library(purrr)
@@ -79,9 +82,9 @@ dados_rotas <- tibble(read.delim("4_export/2_resumo/rel_1.txt"))
 # Organizando os dados
 dados_rotas <- bd_L1$saidas %>%
   group_by(saida = as.integer(saida)) %>%
-  select(ROTA = rota) %>%
+  dplyr::select(ROTA = rota) %>%
   left_join(dados_rotas, by = "saida") %>%
-  select(3:10,2)
+  dplyr::select(3:10,2)
 
 # Criando o intervalo
 dados_rotas <- dados_rotas %>%
@@ -120,12 +123,12 @@ linha_sf <- pontos_sf %>%
   group_by(saida) %>%
   summarise(do_union = FALSE) %>%
   st_cast("LINESTRING") %>%
-  select(saida) %>%
+  dplyr::select(saida) %>%
   as_tibble() %>%
   left_join(dados_rotas[1:10]%>%
               group_by(saida = as.character(saida)),
             by = "saida") %>%
-  select(3:11,2) %>%
+  dplyr::select(3:11,2) %>%
   st_as_sf()
 
 # Atribuindo caminho
@@ -168,7 +171,7 @@ dados_pontos <- bd_L2$comportamento %>%
             mud_cmp = sum(mud_comp_gru, na.rm = TRUE)) %>%
   right_join(bd_L2$avistagens, by = c("saida", "grupo")) %>%
   ungroup() %>%
-  dplyr::select(1,2,15,17,19,23,26:40,20,21) %>%
+  dplyr::select(1,2,15,17,19,23,26:41,20,21) %>%
   mutate(tam_grupo = nafill(tam_grupo, fill = 0L),
          tam_min = nafill(tam_min, fill = 0L),
          tam_max = nafill(tam_max, fill = 0L)) %>%
@@ -177,7 +180,7 @@ dados_pontos <- bd_L2$comportamento %>%
   mutate(tam_est = round(sum(tam_grupo, mean(c(tam_min, tam_max))),0),
          int_avis = interval(datahora_I, datahora_F)) %>%
   ungroup() %>%
-  dplyr::select(1:4,7:14,18:21,24,25,22,23) %>%
+  dplyr::select(1:4,7:15,19:22,25,26,23,24) %>%
   rowid_to_column("n_grupo")
 
 # Craindo uma lista vazia pra receber dados a seguir
@@ -202,7 +205,7 @@ dados_pontos <- bind_rows(sonda, .id = "n_grupo") %>%
   right_join(dados_pontos, by = "n_grupo") %>%
   arrange(as.integer(saida)) %>%
   group_by(saida) %>%
-  dplyr::select(9:25,2:8,27,28)
+  dplyr::select(9:26,2:8,28,29)
 
 # Criando um objeto sf para agrupamentos
 agrup_sf <- st_as_sf(x = dados_pontos,
@@ -231,9 +234,9 @@ dados_rotas <- tibble(read.delim("4_export/2_resumo/rel_2.txt"))
 # Organizando os dados
 dados_rotas <- bd_L2$saidas %>%
   group_by(saida = as.integer(saida)) %>%
-  select(ROTA = rota) %>%
+  dplyr::select(ROTA = rota) %>%
   left_join(dados_rotas, by = "saida") %>%
-  select(3:10,2)
+  dplyr::select(3:10,2)
 
 # Criando o intervalo
 dados_rotas <- dados_rotas %>%
@@ -274,12 +277,11 @@ linha_sf <- pontos_sf %>%
   summarise(do_union = FALSE) %>%
   st_cast("LINESTRING") %>%
   st_intersection(y = agua_sf) %>%
-  select(saida) %>%
+  dplyr::select(saida) %>%
   as_tibble() %>%
-  left_join(dados_rotas[1:10]%>%
-              group_by(saida = as.character(saida)),
+  left_join(dados_rotas[1:10] %>% group_by(saida = as.character(saida)),
             by = "saida") %>%
-  select(3:11,2) %>%
+  dplyr::select(3:11,2) %>%
   st_as_sf()
 
 # Atribuindo caminho
@@ -316,16 +318,21 @@ dados_pontos <- bd_L3$assobios %>%
             DF_m = mean(DF, na.rm = TRUE),
             FI_m = mean(FI, na.rm = TRUE),
             FF_m = mean(FF, na.rm = TRUE),
-            num_ass = n()) %>%
+            num_ass = n() - sum(is.na(canal))) %>%
   right_join(bd_L3$gravacoes, by = c("saida", "arquivo_wav")) %>%
-  dplyr::select(1,15,14,2,12,16,3:11) %>%
+  dplyr::select(1,15,14,2,12,16,17,3:11) %>%
   group_by(saida, estacao) %>%
   right_join(bd_L3$estacoes, by = c("saida", "estacao")) %>%
   rowwise() %>%
   mutate(int_est = interval(datahora_I, datahora_F)) %>%
   ungroup() %>%
-  dplyr::select(1:3,16,4:15,18:20,26) %>%
-  rowid_to_column("n_grupo")
+  dplyr::select(1:4,17,5:16,19:21,27) %>%
+  rowid_to_column("n_grav") %>%
+  left_join(bd_L3$saidas %>%
+              group_by(saida) %>%
+              select(periodo),
+            by = "saida") %>%
+  dplyr::select(1:4, 23, 5:22)
 
 # Craindo uma lista vazia pra receber dados a seguir
 sonda <- list()
@@ -336,9 +343,9 @@ for (i in 1:nrow(dados_pontos)) {
 }
 
 # Juntando todos os dados
-dados_pontos <- bind_rows(sonda, .id = "n_grupo") %>%
-  mutate(n_grupo = as.numeric(n_grupo)) %>%
-  group_by(n_grupo) %>%
+dados_pontos <- bind_rows(sonda, .id = "n_grav") %>%
+  mutate(n_grav = as.numeric(n_grav)) %>%
+  group_by(n_grav) %>%
   summarise(Temp_m = mean(Temp, na.rm = TRUE),
             Sal_m = mean(Sal, na.rm = TRUE),
             OD_m = mean(OD, na.rm = TRUE),
@@ -346,10 +353,10 @@ dados_pontos <- bind_rows(sonda, .id = "n_grupo") %>%
             pH_m = mean(pH, na.rm = TRUE),
             Pres_m = mean(Pres, na.rm = TRUE),
             num_pts_s = n()) %>%
-  right_join(dados_pontos, by = "n_grupo") %>%
-  arrange(as.integer(saida)) %>%
+  right_join(dados_pontos, by = "n_grav") %>%
+  arrange(saida = as.integer(saida)) %>%
   group_by(saida) %>%
-  dplyr::select(9:24,2:8,26,27)
+  dplyr::select(9:17,30,18:26,2:8,28,29)
 
 dados_pontos <- dados_pontos[!is.na(dados_pontos[["lat_I"]]),]
 
@@ -379,12 +386,16 @@ st_write(obj = estacoes_sf,
 dados_rotas <- tibble(read.delim("4_export/2_resumo/rel_3.txt"))
 
 # Organizando os dados
-dados_rotas <- bd_L3$gravacoes %>%
+dados_rotas <- bd_L3$saidas %>%
+  group_by(saida) %>%
+  select(periodo) %>%
+  right_join(bd_L3$gravacoes, by = "saida") %>%
   group_by(saida = as.integer(saida)) %>%
-  select(AREA = area) %>%
+  dplyr::select(AREA = area,
+                PERIODO = periodo) %>%
   unique() %>%
   left_join(dados_rotas, by = "saida") %>%
-  select(3:9,2)
+  dplyr::select(4,5,2,3,6:11)
 
 # Criando o intervalo
 dados_rotas <- dados_rotas %>%
@@ -424,12 +435,12 @@ linha_sf <- pontos_sf %>%
   summarise(do_union = FALSE) %>%
   st_cast("LINESTRING") %>%
   st_intersection(y = agua_sf) %>%
-  select(saida) %>%
+  dplyr::select(saida) %>%
   as_tibble() %>%
-  left_join(dados_rotas[1:9]%>%
+  left_join(dados_rotas[1:10]%>%
               group_by(saida = as.character(saida)),
             by = "saida") %>%
-  select(3:10,2) %>%
+  dplyr::select(3:11,2) %>%
   st_as_sf()
 
 # Atribuindo caminho

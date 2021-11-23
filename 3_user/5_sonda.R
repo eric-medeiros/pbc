@@ -1,5 +1,8 @@
 # Criação de um arquivo *.tif para cada um dos parâmetros da sonda (temp, sal, od, ph, turb, press)
 
+# Limpando o Global Environment 
+rm(list = ls())
+
 # Linha 1 ----
 
 library(terra)

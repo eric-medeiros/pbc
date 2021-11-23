@@ -1,5 +1,8 @@
 # Resumão de relatório
 
+# Limpando o Global Environment 
+rm(list = ls())
+
 library(magrittr)
 library(dplyr)
 library(purrr)
@@ -75,7 +78,7 @@ rel_2 <- bd_L2$avistagens %>%
   rowwise() %>%
   mutate(tam_est = round(sum(tam_grupo, mean(c(tam_min, tam_max))),0)) %>%
   ungroup() %>%
-  dplyr::select(1:3, 30, 31) %>%
+  dplyr::select(1:3, 31, 32) %>%
   group_by(saida) %>%
   summarise(.groups = "keep",
             SAIDA = first(saida),
@@ -84,7 +87,7 @@ rel_2 <- bd_L2$avistagens %>%
             T_BOTO = round(as.period(sum(tempo_grupo, na.rm = TRUE)),0),
             GRUPOS = n()) %>%
   right_join(bd_L2$saidas, by = "saida") %>%
-  dplyr::select(1, 2:6)
+  dplyr::select(1:6)
 
 rel_2 <- bd_L2$comportamento %>%
   rowwise() %>%
@@ -132,26 +135,33 @@ rel_3 <- bd_L3$gravacoes %>%
   group_by(saida) %>%
   summarise(SAIDA = first(saida),
             DATA = first(data),
-            RECS = n()) 
-
-rel_3 <- bd_L3$estacoes %>%
-  group_by(saida) %>%
-  summarise(T_REC = seconds_to_period(sum(period_to_seconds(as.period(datahora_F - datahora_I))))) %>%
-  right_join(rel_3, by = "saida") %>%
-  dplyr::select(1,3:5,2)
+            RECS = n(),
+            T_REC = round(seconds_to_period(sum(duracao_s)), 0)) 
 
 rel_3 <- bd_L3$assobios %>%
   group_by(saida) %>%
   summarise(ASSOBIOS = n()) %>%
   right_join(rel_3, by = "saida") %>%
-  dplyr::select(1,3:6, 2)
+  mutate(T_ANA = period("NA")) %>%
+  dplyr::select(1,3:7, 2)
+
+for (i in 1:nrow(rel_3)) {
+  
+  if(!is.na(rel_3$ASSOBIOS[[i]])) {
+    rel_3$T_ANA[[i]] <- rel_3$T_REC[[i]] 
+  }
+  else{
+    rel_3$T_ANA[[i]] <- as.period(rel_3$ASSOBIOS[[i]]) 
+  }
+  
+}
 
 rel_3 <- bd_L3$rota[c(2, 6, 7)] %>%
   group_by(saida) %>%
   summarise(T_BARCO = as.period(sum(tempo_p_prox, na.rm = TRUE)),
             KM = round(sum(dist_p_prox, na.rm = TRUE),1)) %>%
   right_join(rel_3, by = "saida") %>%
-  dplyr::select(1, 4:8, 2, 3)
+  dplyr::select(1, 4:9, 2, 3)
 
 rel_3$DATA <- as.character.Date(rel_3$DATA)
 
@@ -162,6 +172,10 @@ rel_3$T_REC <-  paste0(lubridate::hour(rel_3$T_REC), ":",
 rel_3$T_BARCO <-  paste0(lubridate::hour(rel_3$T_BARCO), ":",
                          lubridate::minute(rel_3$T_BARCO), ":",
                          lubridate::second(rel_3$T_BARCO))
+
+rel_3$T_ANA <-  paste0(lubridate::hour(rel_3$T_ANA), ":",
+                       lubridate::minute(rel_3$T_ANA), ":",
+                       lubridate::second(rel_3$T_ANA))
 
 # Definindo caminho para o arquivo TXT
 caminho_rel_3 <-  paste0(pasta_proj, "/4_export/2_resumo/rel_3.txt")
