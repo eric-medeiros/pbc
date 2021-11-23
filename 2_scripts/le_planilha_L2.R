@@ -27,7 +27,7 @@ le_planilha_L2 <- function(pasta_L2) {
                                          "text", "text", "text", "text", "text", 
                                          "text", "text", "text", "text", "text", 
                                          "text", "text", "text", "text", "text", 
-                                         "text", "text", "text"))
+                                         "text", "text", "text", "text"))
   
   comportamento <- read_excel(arquivo_campo_L2, sheet = 5, 
                               col_types = c("text", "text", "text", "text", "text",
@@ -74,6 +74,7 @@ le_planilha_L2 <- function(pasta_L2) {
   avistagens$agrupamento_embarcacao <- as.logical(nafill(as.numeric(avistagens$agrupamento_embarcacao), fill = 0))
   avistagens$WP_I <- str_pad(avistagens$WP_I, 3, "left", "0")
   avistagens$WP_F <- str_pad(avistagens$WP_F, 3, "left", "0")
+  avistagens$n_barcos <- as.integer(avistagens$n_barcos)
   avistagens$motor <- as.character(avistagens$motor)
   avistagens$tipo <- as.character(avistagens$tipo)
   avistagens$tempo <- as.character(avistagens$tempo)
