@@ -26,16 +26,19 @@ le_planilha_L2 <- function(pasta_L2) {
                            col_types = c("text", "text", "text", "text", "text", 
                                          "text", "text", "text", "text", "text", 
                                          "text", "text", "text", "text", "text", 
-                                         "text", "text", "text", "text", "text", 
-                                         "text", "text", "text", "text"))
+                                         "text", "text", "text"))
   
-  comportamento <- read_excel(arquivo_campo_L2, sheet = 5, 
+  embarcacoes <- read_excel(arquivo_campo_L2, sheet = 5, 
                               col_types = c("text", "text", "text", "text", "text",
                                             "text", "text", "text", "text", "text",
-                                            "text", "text", "text", "text", "text", 
+                                            "text", "text", "text", "text", "text"))
+  
+  comportamento <- read_excel(arquivo_campo_L2, sheet = 6, 
+                              col_types = c("text", "text", "text", "text", "text",
+                                            "text", "text", "text", "text", "text",
                                             "text", "text", "text"))
   
-  WP_extras <- read_excel(arquivo_campo_L2, sheet = 6,
+  WP_extras <- read_excel(arquivo_campo_L2, sheet = 7,
                           col_types = c("text", "text", "text", "text", "text",
                                         "text", "text", "text"))
   
@@ -74,12 +77,6 @@ le_planilha_L2 <- function(pasta_L2) {
   avistagens$agrupamento_embarcacao <- as.logical(nafill(as.numeric(avistagens$agrupamento_embarcacao), fill = 0))
   avistagens$WP_I <- str_pad(avistagens$WP_I, 3, "left", "0")
   avistagens$WP_F <- str_pad(avistagens$WP_F, 3, "left", "0")
-  avistagens$n_barcos <- as.integer(avistagens$n_barcos)
-  avistagens$motor <- as.character(avistagens$motor)
-  avistagens$tipo <- as.character(avistagens$tipo)
-  avistagens$tempo <- as.character(avistagens$tempo)
-  avistagens$distancia <- as.numeric(avistagens$distancia)
-  avistagens$velocidade <- as.character(avistagens$tempo)
   avistagens$fotoID <- as.character(avistagens$fotoID)
   avistagens$coesao_grupo <- as.character(avistagens$coesao_grupo)
   avistagens$coesao_af <- as.character(avistagens$coesao_af)
@@ -90,6 +87,21 @@ le_planilha_L2 <- function(pasta_L2) {
   avistagens$n_infantes <- as.integer(avistagens$n_infantes)
   avistagens$n_juvenis <- as.integer(avistagens$n_juvenis)
   avistagens$n_adultos <- as.integer(avistagens$n_adultos)
+  
+  embarcacoes$saida <- as.character(embarcacoes$saida)
+  embarcacoes$data <- dmy(embarcacoes$data)
+  embarcacoes$grupo <- as.integer(embarcacoes$grupo)
+  embarcacoes$barco <- as.integer(embarcacoes$barco)
+  embarcacoes$motor <- as.character(embarcacoes$motor)
+  embarcacoes$tipo <- as.character(embarcacoes$tipo)
+  embarcacoes$tempo <- as.character(embarcacoes$tempo)
+  embarcacoes$distancia <- as.numeric(embarcacoes$distancia)
+  embarcacoes$velocidade <- as.character(embarcacoes$tempo)
+  embarcacoes$mud_dir <- as.integer(embarcacoes$mud_dir)
+  embarcacoes$angulacao <- as.integer(embarcacoes$angulacao)
+  embarcacoes$mud_coe_af <- as.integer(embarcacoes$mud_coe_af)
+  embarcacoes$mud_tam_gru <- as.integer(embarcacoes$mud_tam_gru)
+  embarcacoes$mud_comp_gru <- as.integer(embarcacoes$mud_comp_gru)
   
   comportamento$saida <- as.character(comportamento$saida)
   comportamento$data <- dmy(comportamento$data)
@@ -103,16 +115,11 @@ le_planilha_L2 <- function(pasta_L2) {
   comportamento$rvz <- as.integer(comportamento$rvz)
   comportamento$int <- as.integer(comportamento$int)
   comportamento$bar <- as.integer(comportamento$bar)
-  comportamento$mud_dir <- as.integer(comportamento$mud_dir)
-  comportamento$angulacao <- as.integer(comportamento$angulacao)
-  comportamento$mud_coe_af <- as.integer(comportamento$mud_coe_af)
-  comportamento$mud_tam_gru <- as.integer(comportamento$mud_tam_gru)
-  comportamento$mud_comp_gru <- as.integer(comportamento$mud_comp_gru)
-  
+
   WP_extras$saida <- as.character(WP_extras$saida)
   WP_extras$data <- dmy(WP_extras$data)
   WP_extras$aba <- as.character(WP_extras$aba)
-  WP_extras$datahora_extra <- ymd_hm(paste(WP_extras$data, str_sub(WP_extras$hora_extra, 12, 16))) + hours(3)
+  WP_extras$datahora_extra <- ymd_hm(paste(WP_extras$data, WP_extras$hora_extra)) + hours(3)
   WP_extras$hora_extra <- NULL
   WP_extras$WP_extra <- str_pad(WP_extras$WP_extra, 3, "left", "0")
   WP_extras$lng_extra <- as.numeric(WP_extras$lng_extra)
@@ -126,6 +133,7 @@ le_planilha_L2 <- function(pasta_L2) {
                    amostragens = amostragens,
                    clima = clima,
                    avistagens = avistagens,
+                   embarcacoes = embarcacoes,
                    comportamento = comportamento,
                    WP_extras = WP_extras)
   

@@ -18,7 +18,7 @@ source(caminho_func_1)
 # pasta_L1 <- paste(pasta_proj, "/1_data/LINHA_1", sep = "")
 
 # fazendo nas pastas na base
-pasta_L1 <- "C:/Users/PBC-PESQUISA/Documents/PROJETO BOTO-CINZA/PESQUISA/LINHA_1"
+pasta_L1 <- "//NAS_IPeC/PBC-Pesquisa/LINHA_1"
 
 # Executando - Pode mudar a pasta, mas só com estrutura interna da linha 1 
 bd_L1 <- bd_L1(pasta_L1)
@@ -45,7 +45,7 @@ source(caminho_func_2)
 # pasta_L2 <- paste(pasta_proj, "/1_data/LINHA_2", sep = "")
 
 # fazendo nas pastas na base
-pasta_L2 <- "C:/Users/PBC-PESQUISA/Documents/PROJETO BOTO-CINZA/PESQUISA/LINHA_2"
+pasta_L2 <- "//NAS_IPeC/PBC-Pesquisa/LINHA_2"
 
 # Executando - Pode mudar a pasta, mas só com estrutura interna da linha 2 
 bd_L2 <- bd_L2(pasta_L2)
@@ -73,7 +73,7 @@ source(caminho_func_3)
 # pasta_L3 <- paste(pasta_proj, "/1_data/LINHA_3", sep = "")
 
 # fazendo nas pastas na base
-pasta_L3 <- "C:/Users/PBC-PESQUISA/Documents/PROJETO BOTO-CINZA/PESQUISA/LINHA_3"
+pasta_L3 <- "//NAS_IPeC/PBC-Pesquisa/LINHA_3"
 
 # Executando - Pode mudar a pasta, mas só com estrutura interna da linha 3 
 bd_L3 <- bd_L3(pasta_L3)

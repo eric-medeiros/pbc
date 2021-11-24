@@ -37,7 +37,7 @@ IDs$lng <- info$GPSLongitude
 IDs$lat <- info$GPSLatitude
 IDs$datahora <- ymd_hms(info$CreateDate)
 
-IDs$arquivo <- str_sub(IDs$caminho, 98, -5)
+IDs$arquivo <- str_sub(IDs$caminho, 62, -5)
 
 IDs <- IDs %>%
   dplyr::select(1,6,5,3,4,2)

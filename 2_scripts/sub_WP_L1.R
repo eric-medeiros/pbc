@@ -23,9 +23,9 @@ sub_WP_L1 <- function(pasta_L1) {
   
   lista_L1[[2]] <- lista_L1[[2]] %>%
     left_join(WP_sub, by = c(saida = "saida", WP_I = "WP")) %>%
-    dplyr::select(c(1:5, "datahora_I" = 9, "lng_I" = 10, "lat_I" = 11, 6)) %>%
+    dplyr::select(c(1:5, "datahora_I" = 9, "lng_I" = 10, "lat_I" = 11, 6:7)) %>%
     left_join(WP_sub, by = c(saida = "saida", WP_F = "WP")) %>%
-    dplyr::select(c(1:9, "datahora_F" = 11, "lng_F" = 12, "lat_F" = 13))
+    dplyr::select(c(1:9, "datahora_F" = 12, "lng_F" = 13, "lat_F" = 14, 10))
   
   lista_L1[[3]] <- lista_L1[[3]] %>%
     left_join(WP_sub, by = c(saida = "saida", WP_I = "WP")) %>%
