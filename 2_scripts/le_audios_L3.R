@@ -26,7 +26,9 @@ le_audios_L3 <- function (pasta_L3) {
     
   }
   
-  lista_audios <- list.files(paste0(pasta_L3,"/01_CAMPO/00_AUDIOS"),
+  pasta_audios <- "C:/Users/Public/Documents/SynologyDrive"
+  
+  lista_audios <- list.files(pasta_audios,
                              recursive = TRUE,
                              pattern = "wav",
                              full.names = TRUE)
