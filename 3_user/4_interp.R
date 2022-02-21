@@ -350,7 +350,5 @@ m <- leaflet() %>%
   hideGroup(c("Densidade", "Interação", "Assobios", "Barcos", "Barcos em permanência"))
   
 
-m
-
 saveWidget(m, file = "4_export/4_interp/Parciais.html", selfcontained = TRUE, title = "Mapas parciais do Projeto Boto-Cinza")
 

@@ -139,8 +139,8 @@ historico_dia <- bd_L1$identificacoes %>%
   group_by(ID) %>%
   mutate(data = date(datahora),
          avis = 1L) %>%
-  na.omit() %>%
-  dplyr::select(ID, data, avis)
+  dplyr::select(ID, data, avis) %>%
+  na.omit()
 
 
 mark_dia <- historico_dia %>%
@@ -156,6 +156,8 @@ dp_dia <- process.data(mark_dia, model = "Closed")
 result <- mark(dp_dia)
 
 cleanup(ask = FALSE)
+
+setwd(pasta_proj)
 
 
 ```

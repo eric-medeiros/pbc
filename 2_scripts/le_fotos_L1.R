@@ -28,19 +28,27 @@ for (i in 1:length(pastas_IDs)) {
   IDs$caminho <- vec
   IDs$caminho.x <- NULL
   IDs$caminho.y <- NULL
-  
+  IDs$arquivo_renome <- str_sub(IDs$caminho, 62, -5)
+  IDs$arquivo <- str_replace(IDs$arquivo_renome, " [a-z]$", "")
+
 }
 
 info <- read_exif(IDs$caminho)
+
+esa <- str_subset(unlist(str_split(IDs$arquivo, " ")), "E")
+
+IDs$exp <- str_replace(str_subset(unlist(str_split(esa, "S")), "E"), "E", "")
+IDs$grupo <- str_subset(unlist(str_split(esa, "A")), "E", negate = TRUE)
+
 
 IDs$lng <- info$GPSLongitude
 IDs$lat <- info$GPSLatitude
 IDs$datahora <- ymd_hms(info$CreateDate)
 
-IDs$arquivo <- str_sub(IDs$caminho, 62, -5)
 
 IDs <- IDs %>%
-  dplyr::select(1,6,5,3,4,2)
+  dplyr::select(5,6,1,9,7,8,3,2,4)
+
 
 invisible(IDs)
 

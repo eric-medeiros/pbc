@@ -1,3 +1,4 @@
+
 library(magrittr)
 library(dplyr)
 library(lubridate)
@@ -19,8 +20,8 @@ historico_dia <- bd_L1$identificacoes %>%
   group_by(ID) %>%
   mutate(data = date(datahora),
          avis = 1L) %>%
-  na.omit() %>%
-  dplyr::select(ID, data, avis)
+  dplyr::select(ID, data, avis) %>%
+  na.omit()
 
 
 mark_dia <- historico_dia %>%
