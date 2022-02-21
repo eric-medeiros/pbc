@@ -112,7 +112,7 @@ for (i in 1:nrow(sonda)) {
               filename = arquivo_temp,
               overwrite = TRUE)
   
- writeRaster(x = terra::project(ras_sal,"epsg:4674"),
+  writeRaster(x = terra::project(ras_sal,"epsg:4674"),
               filename = arquivo_sal,
               overwrite = TRUE)
   

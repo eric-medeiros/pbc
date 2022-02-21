@@ -78,7 +78,7 @@ rel_2 <- bd_L2$avistagens %>%
   rowwise() %>%
   mutate(tam_est = round(sum(tam_grupo, mean(c(tam_min, tam_max))),0)) %>%
   ungroup() %>%
-  dplyr::select(1:3, 31, 32) %>%
+  dplyr::select(1:3, 25, 26) %>%
   group_by(saida) %>%
   summarise(.groups = "keep",
             SAIDA = first(saida),
@@ -91,10 +91,14 @@ rel_2 <- bd_L2$avistagens %>%
 
 rel_2 <- bd_L2$comportamento %>%
   rowwise() %>%
-  mutate(comp = sum(na, dois_grupos, varios_grupos, cre, esc, cond, rvz, int,
-                    bar, mud_dir, mud_coe_af, mud_tam_gru, na.rm = TRUE)) %>%
+  mutate(comp_sem_barco = sum(na, cre, esc, cond, rvz, int, bar, na.rm = TRUE)) %>%
+  group_by(saida, grupo) %>%
+  left_join(bd_L2$embarcacoes %>%
+              group_by(saida, grupo) %>%
+              transmute(comp_com_barco = sum (mud_dir, mud_coe_af, mud_tam_gru, mud_comp_gru, na.rm = TRUE)),
+            by = c("saida", "grupo")) %>%
   group_by(saida) %>%
-  summarise(.groups = "keep", COMPS = sum(comp)) %>%
+  summarise(.groups = "keep", COMPS = sum(comp_sem_barco, comp_com_barco, na.rm = TRUE)) %>%
   right_join(rel_2, by = "saida") %>%
   dplyr::select(1, 3:7, 2)
 

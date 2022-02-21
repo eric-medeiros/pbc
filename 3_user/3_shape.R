@@ -164,14 +164,10 @@ dados_pontos <- bd_L2$comportamento %>%
             cond_s = sum(cond, na.rm = TRUE),
             rvz_s = sum(rvz, na.rm = TRUE),
             int_s = sum(int, na.rm = TRUE),
-            bar_s = sum(bar, na.rm = TRUE),
-            mud_dir = sum(mud_dir, na.rm = TRUE),
-            mud_coe = sum(mud_coe_af, na.rm = TRUE),
-            mud_tam = sum(mud_tam_gru, na.rm = TRUE),
-            mud_cmp = sum(mud_comp_gru, na.rm = TRUE)) %>%
+            bar_s = sum(bar, na.rm = TRUE)) %>%
   right_join(bd_L2$avistagens, by = c("saida", "grupo")) %>%
   ungroup() %>%
-  dplyr::select(1,2,15,17,19,23,26:41,20,21) %>%
+  dplyr::select(1,2,11,13,15,19,22:31,16,17) %>%
   mutate(tam_grupo = nafill(tam_grupo, fill = 0L),
          tam_min = nafill(tam_min, fill = 0L),
          tam_max = nafill(tam_max, fill = 0L)) %>%
@@ -180,7 +176,8 @@ dados_pontos <- bd_L2$comportamento %>%
   mutate(tam_est = round(sum(tam_grupo, mean(c(tam_min, tam_max))),0),
          int_avis = interval(datahora_I, datahora_F)) %>%
   ungroup() %>%
-  dplyr::select(1:4,7:15,19:22,25,26,23,24) %>%
+  left_join(bd_L2$embarcacoes, by = c("saida", "grupo", "data")) %>%
+  dplyr::select(1:4,7:16,19,21:32,17,18,20) %>%
   rowid_to_column("n_grupo")
 
 # Craindo uma lista vazia pra receber dados a seguir
@@ -205,7 +202,7 @@ dados_pontos <- bind_rows(sonda, .id = "n_grupo") %>%
   right_join(dados_pontos, by = "n_grupo") %>%
   arrange(as.integer(saida)) %>%
   group_by(saida) %>%
-  dplyr::select(9:26,2:8,28,29)
+  dplyr::select(9:34,2:8,36,37)
 
 # Criando um objeto sf para agrupamentos
 agrup_sf <- st_as_sf(x = dados_pontos,

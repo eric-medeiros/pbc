@@ -11,7 +11,7 @@ junta_raven_L3 <- function(lista_L3, dados_raven)
     unnest (cols = c(data)) %>%
     dplyr::select(saida, data, estacao, area, arquivo_wav, assobios, canal,
            BT, ET, LF, HF, MF, CF, APD, DT, DF, PF, PT, FI, FF, PF_check,
-           modulacao,	PI,	sobreposicao,	OBS)
+           modulacao,	PI,	sobreposicao, analisado,	OBS)
 
   invisible(lista_L3)
   

@@ -71,7 +71,9 @@ kernel_L1 <- (density.ppp(grupos_ppp,
 kernel_L1 <- rescale.im(kernel_L1, .001, c("metro", "metros"))
 
 # Rotulando o CRS no raster do kernel como WGS 84 projetada - pacote raster
-rast_proj <- raster(kernel_L1, crs = CRS("+init=epsg:32723"))
+rast_proj <- raster(kernel_L1)
+
+crs(rast_proj) <- CRS("+init=epsg:32723")
 
 # Fazendo o volume para cada p
 p50_1 <- rasterToPolygons(raster.vol(rast_proj, p=0.50), dissolve = TRUE)[2,]
@@ -100,7 +102,6 @@ writeOGR(obj = p95_1,
          layer = "L1_p95",
          driver = "ESRI Shapefile",
          overwrite_layer = TRUE)
-
 
 
 ### Linha 2 (tem que ter rodados o kernel da linha 1) ----
@@ -216,7 +217,8 @@ estacoes_ppp <- rescale.ppp(estacoes_ppp, 1000, "km")
 estacoes_im <- Smooth(estacoes_ppp, bw.smoothppp, sigma = c(hmin=0.5, hmax=0.8), kernel = "gaussian")
 
 # Voltando para m em X e Y. Z continua como km²; CRS como WGS 84 projetada - pacote raster
-assobios_im <- raster(rescale.im(estacoes_im, .001, c("metro", "metros")), crs = CRS("+init=epsg:32723"))
+assobios_im <- raster(rescale.im(estacoes_im, .001, c("metro", "metros")))
+crs(assobios_im) <- CRS("+init=epsg:32723")
 names(assobios_im) <- "ASS"
 
 # Definir o nome da pasta nova com o padrão de sempre
@@ -233,4 +235,122 @@ writeRaster(assobios_im,
             bylayer = TRUE,
             suffix = "names")
 
+
+### MAPA HTML
+
+
+library(leaflet)
+library(htmlwidgets)
+
+
+
+pal <- colorNumeric(c("#b1b2b6", "#fc52a4", "#ff3d3d"), values(rast_proj),
+                    na.color = "transparent")
+
+pal3 <- colorNumeric(c("#3770f5", "#31ae52", "#ff011a"), values(assobios_im),
+                     na.color = "transparent")
+
+pontos_2 <- st_read(paste0(pasta_proj, "/4_export/3_shape/PONTOS/L2_grupos.shp"))
+pontos_2_barco <- pontos_2[!is.na(pontos_2$tempo),]
+
+pontos_3 <- st_read(paste0(pasta_proj, "/4_export/3_shape/PONTOS/L3_estacoes.shp"))
+
+
+iconSet <- awesomeIconList(
+  PE = makeAwesomeIcon(
+    icon = 'ship',
+    library = 'fa',
+    iconColor = 'gold',
+    markerColor = 'red',
+    iconRotate = 10
+  ),
+  PA = makeAwesomeIcon(
+    icon = 'ship',
+    library = 'fa',
+    iconColor = '#000000',
+    markerColor = 'blue',
+    squareMarker = TRUE
+  )
+)
+
+
+
+
+
+m <- leaflet() %>%
+  addProviderTiles(providers$Esri.WorldImagery) %>%
+  addCircleMarkers(grupos_proj,
+                   lng = st_coordinates(grupos_sf)[,"X"],
+                   lat = st_coordinates(grupos_sf)[,"Y"],
+                   radius = 3,
+                   stroke = FALSE,
+                   color = "#2ee841",
+                   group = "Densidade") %>%
+  addAwesomeMarkers(pontos_2_barco,
+                    lng = st_coordinates(pontos_2_barco)[,"X"],
+                    lat = st_coordinates(pontos_2_barco)[,"Y"],
+                    group = "Barcos",
+                    icon = makeAwesomeIcon(
+                      icon = 'ship',
+                      library = 'fa',
+                      iconColor = 'silver',
+                      markerColor = 'blue',
+                      iconRotate = 10
+                    )) %>%
+  addAwesomeMarkers(pontos_2_barco[pontos_2_barco$tempo == "PE",],
+                    lng = st_coordinates(pontos_2_barco[pontos_2_barco$tempo == "PE",])[,"X"],
+                    lat = st_coordinates(pontos_2_barco[pontos_2_barco$tempo == "PE",])[,"Y"],
+                    group = "Barcos em permanência",
+                    icon = makeAwesomeIcon(
+                      icon = 'ship',
+                      library = 'fa',
+                      iconColor = 'gold',
+                      markerColor = 'cadetblue',
+                      iconRotate = -10
+                    )) %>%
+  addCircleMarkers(pontos_2,
+                   lng = st_coordinates(pontos_2)[,"X"],
+                   lat = st_coordinates(pontos_2)[,"Y"],
+                   radius = 3,
+                   stroke = FALSE,
+                   color = "#ff011a",
+                   group = "Interação") %>%
+  addCircleMarkers(pontos_3,
+                   lng = st_coordinates(pontos_3)[,"X"],
+                   lat = st_coordinates(pontos_3)[,"Y"],
+                   radius = 3,
+                   stroke = FALSE,
+                   color = "#ee01ff",
+                   group = "Assobios") %>%
+  addRasterImage(rast_proj,
+                 colors = pal,
+                 opacity = 0.5,
+                 group = "Densidade") %>%
+  addRasterImage(rast2_proj,
+                 colors = pal,
+                 opacity = 0.5,
+                 group = "Interação") %>%
+  addRasterImage(assobios_im,
+                 colors = pal3,
+                 opacity = 0.5,
+                 group = "Assobios") %>%
+  addLegend(pal = pal,
+            values = values(rast_proj),
+            title = "Indivíduos",
+            group = "Densidade",
+            opacity = 0.5) %>%
+  addLegend(pal = pal3,
+            values = values(assobios_im),
+            title = "Assobios",
+            group = "Assobios",
+            opacity = 0.5) %>%
+  addLayersControl(baseGroups = c("Densidade", "Interação", "Assobios"),
+                   overlayGroups = c("Barcos", "Barcos em permanência"),
+                   options = layersControlOptions(collapsed = FALSE)) %>%
+  hideGroup(c("Densidade", "Interação", "Assobios", "Barcos", "Barcos em permanência"))
+  
+
+m
+
+saveWidget(m, file = "4_export/4_interp/Parciais.html", selfcontained = TRUE, title = "Mapas parciais do Projeto Boto-Cinza")
 

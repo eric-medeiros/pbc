@@ -42,9 +42,10 @@ le_raven_L3 <- function(pasta_L3)
     names(arrumado)[19] <- "sobreposicao"
     
     arrumado$PI <- str_replace_all(arrumado$PI, "0", "NA")
+    arrumado$analisado <- ifelse(is.na(arrumado$canal[[1]]), "sem_ass", "com_ass")
     
-    arrumado <- arrumado[,c(23,24,22,3:14,20,21,16:19,15)]
-    
+    arrumado <- arrumado[,c(23,24,22,3:14,20,21,16:19,25,15)]
+
     arrumado$canal <- as.character(arrumado$canal)
     arrumado$BT <- as.character(arrumado$BT)
     arrumado$ET <- as.character(arrumado$ET)
