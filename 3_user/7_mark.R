@@ -8,6 +8,11 @@ library(RMark)
 
 pasta_proj <- rprojroot::find_rstudio_root_file()
 
+nova_pasta <- paste0(pasta_proj, "/4_export/7_mark")
+dir.create(nova_pasta)
+setwd(nova_pasta)
+
+
 bd_L1 <- readRDS(paste0(pasta_proj,"/4_export/1_banco/bd_L1.rds"))
 
 historico_dia <- bd_L1$identificacoes %>%
@@ -31,3 +36,7 @@ dp_dia <- process.data(mark_dia, model = "Closed")
 result <- mark(dp_dia)
 
 result$results$derived$`N Population Size`
+
+cleanup(ask = FALSE)
+
+setwd(pasta_proj)
