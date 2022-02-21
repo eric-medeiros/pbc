@@ -1,0 +1,580 @@
+---
+title: "Ecologia Acústica"
+author: "Equipe do Projeto Boto-Cinza"
+date: "31/01/2022"
+output:
+  html_document:
+    df_print: "paged"
+---
+
+
+# Dados {.tabset}
+```{r include = FALSE}
+library(ggplot2)
+library(GGally)
+library(patchwork)
+library(Hmisc)
+library(cowplot)
+library(forcats)
+library(flexdashboard)
+library(ggplot2)
+library(magrittr)
+library(fontawesome)
+library(plotly)
+library(data.table)
+library(dplyr)
+library(lubridate)
+library(stringr)
+
+## Chamando e lendo o arquivo ##
+pasta_proj <- rprojroot::find_rstudio_root_file()
+
+bd_L3  <- readRDS(paste0(pasta_proj, "/4_export/1_banco/bd_L3.rds"))
+
+amostras <- bd_L3$saidas %>%
+  dplyr::select(saida, periodo) %>%
+  right_join(bd_L3$estacoes, by = "saida") %>%
+  mutate(int_est = interval(ymd_hms(datahora_I),
+                            ymd_hms(datahora_F))) %>%
+  dplyr::select(c("saida", "periodo", "estacao", "int_est"))
+
+sonda <- list()
+clima <- list()
+
+for (i in 1:nrow(amostras)) {
+  sonda[[i]] <-  bd_L3$sonda[ymd_hms(bd_L3$sonda$datahora_SONDA) %within% 
+                               amostras$int_est[[i]], ] 
+  sonda[[i]]$estacao <- amostras$estacao[[i]]
+  
+  clima[[i]] <-  bd_L3$clima[int_start(amostras$int_est[[i]]) %within%
+                               interval(bd_L3$clima$datahora_I, bd_L3$clima$datahora_F), ]
+  clima[[i]]$estacao <- amostras$estacao[[i]]
+}
+
+sonda_tab <- bind_rows(sonda) %>%
+  mutate(saida = as.character(as.numeric(saida))) %>%
+  group_by(saida, estacao) %>%
+  summarise(.groups = "keep",
+            Temp_m = mean(Temp, na.rm = TRUE),
+            Sal_m = mean(Sal, na.rm = TRUE),
+            OD_m = mean(OD, na.rm = TRUE),
+            Turb_m = mean(Turb, na.rm = TRUE),
+            pH_m = mean(pH, na.rm = TRUE),
+            Pres_m = mean(Pres, na.rm = TRUE),
+            num_pts_s = n()) %>%
+  right_join(amostras, by = c("saida", "estacao")) %>%
+  group_by(saida) %>%
+  arrange(as.numeric(saida)) %>%
+  dplyr::select(!"int_est")
+
+clima_tab <- bind_rows(clima) %>%
+  mutate(saida = as.character(as.numeric(saida))) %>%
+  group_by(saida, estacao) %>%
+  summarise(.groups = "keep",
+            dir_vento = first(dir_vento),
+            veloc_vento = first(veloc_vento),
+            beaufort = first(beaufort),
+            cobert_nuvens = first(cobert_nuvens),
+            visibilidade = first(visibilidade),
+            reflexo = first(reflexo),
+            coloracao_agua = first(coloracao_agua)) %>%
+  right_join(amostras, by = c("saida", "estacao"))  %>%
+  group_by(saida) %>%
+  arrange(as.numeric(saida)) %>%
+  dplyr::select(!"int_est")
+
+assobios <- bd_L3$assobios %>%
+  group_by(saida, estacao) %>%
+  left_join(sonda_tab, by = c("saida", "estacao")) %>%
+  dplyr::select(!c("assobios", "OBS", "periodo")) %>%
+  left_join(clima_tab, by = c("saida", "estacao"))
+
+estacoes <- bd_L3$gravacoes %>% 
+  dplyr::select(arquivo_wav, duracao_s, profund_m) %>%
+  right_join(assobios, by = "arquivo_wav") %>%
+  group_by(saida, estacao, data) %>%
+  summarise(.groups = "keep",
+            periodo = first(periodo),
+            t_wav =  round(seconds_to_period(sum(unique(duracao_s), na.rm = TRUE)),0),
+            n_wav = n_distinct(arquivo_wav,na.rm = FALSE),
+            wav_com = sum(unique(canal), na.rm = TRUE),
+            wav_sem = n_wav-wav_com,
+            n_ass = sum(canal, na.rm = TRUE),
+            profund_m = mean(profund_m, na.rm = TRUE),
+            DT_m = mean(DT, na.rm = TRUE),
+            LF_m = mean(LF, na.rm = TRUE),
+            HF_m = mean(HF, na.rm = TRUE),
+            MF_m = mean(MF, na.rm = TRUE),
+            CF_m = mean(CF, na.rm = TRUE),
+            APD_m = mean(APD, na.rm = TRUE),
+            PF_m = mean(PF, na.rm = TRUE),
+            FI_m = mean(FI, na.rm = TRUE),
+            FF_m = mean(FF, na.rm = TRUE),
+            Temp_m = mean(Temp_m, na.rm = TRUE),
+            Sal_m = mean(Sal_m, na.rm = TRUE),
+            OD_m = mean(OD_m, na.rm = TRUE),
+            Turb_m = mean(Turb_m, na.rm = TRUE),
+            pH_m = mean(pH_m, na.rm = TRUE),
+            Pres_m = mean(Pres_m, na.rm = TRUE),
+            dir_vento = first(dir_vento),
+            veloc_vento = first(veloc_vento),
+            beaufort = first(beaufort),
+            cobert_nuvens = first(cobert_nuvens),
+            visibilidade = first(visibilidade),
+            reflexo = first(reflexo),
+            coloracao_agua = first(coloracao_agua))
+
+```
+
+## Estações
+
+```{r echo = FALSE}
+estacoes
+```
+
+## Assobios
+
+```{r echo = FALSE}
+assobios
+```
+
+# Análises {.tabset}
+
+## Resumos
+
+```{r include = FALSE}
+
+resumo_3 <- read.delim(paste0(pasta_proj, "/4_export/2_resumo/rel_3.txt"))
+
+res_3 <- resumo_3 %>% 
+  summarise (SAIDAS = n(),
+             KM_T = sum(KM),
+             RECS_T = sum(RECS),
+             T_BARCO_T = sum(as.duration(hms(T_BARCO))),
+             T_REC_T = sum(as.duration(hms(T_REC))),
+             ASSOBIOS_T = sum(ASSOBIOS, na.rm = TRUE)) %>%
+  mutate (T_BARCO_T = seconds_to_period(T_BARCO_T),
+          T_REC_T = seconds_to_period(T_REC_T),
+          CONSUMO_L =  sum(bd_L3$saidas$litros_consumidos, na.rm = TRUE),
+          REC_ANA = length(unique(bd_L3$assobios$arquivo_wav))) %>%
+  dplyr::select(1:3,8,4:7)
+
+```
+
+```{r echo = FALSE}
+res_3
+```
+
+## Gráfica {.tabset}
+
+### Por estação + Período {.tabset}
+
+#### Estação X Profundidade X Número de assobios
+
+```{r include = FALSE}
+g1 <- estacoes %>% mutate(estacao = as.factor(estacao)) %>%
+  ggpairs (., columns = c("estacao", "profund_m", "n_ass"), aes(color = periodo, alpha = 0.7), legend = 1)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+g1
+```
+
+#### Estação X Arquivos gravados X Arquivos com assobios
+
+```{r include  = FALSE}
+g2 <- estacoes %>% mutate(estacao = as.factor(estacao),
+                    wav_com = as.factor(wav_com),
+                    n_wav = as.factor(n_wav)) %>%
+  ggpairs (., columns = c("estacao", "n_wav", "wav_com"), aes(color = periodo, alpha = 0.7), legend = 1)
+```
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+g2
+```
+
+#### Estação X Parâmetros raven
+
+```{r include = FALSE}
+g3 <- estacoes %>% mutate(estacao = as.factor(estacao)) %>%
+  ggpairs (., columns = c("estacao", "DT_m", "LF_m", "HF_m", "MF_m", "CF_m", "APD_m", "PF_m", "FI_m", "FF_m"), aes(color = periodo, alpha = 0.7), legend = 1)
+```
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+g3
+```
+
+#### Estação X Parâmetros sonda
+ 
+```{r include = FALSE}
+g4 <- estacoes %>% mutate(estacao = as.factor(estacao)) %>%
+  ggpairs (., columns = c("estacao", "Temp_m", "Sal_m", "OD_m", "Turb_m", "pH_m", "Pres_m"), aes(color = periodo, alpha = 0.7), legend = 1)
+
+```
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+g4
+```
+
+### Por período + Estação {.tabset}
+
+#### Período X Profundidade X Número de assobios
+
+```{r include = FALSE}
+gp1 <- estacoes %>% 
+  filter(estacao %in% c("1", "2", "3", "10", "11", "12", "14")) %>% 
+  mutate(estacao = as.factor(estacao)) %>%
+  ggpairs (., columns = c("periodo", "profund_m", "n_ass"),
+           aes(color = estacao, alpha = 0.7),
+           legend = 1)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+gp1
+```
+
+#### Período X Arquivos gravados X Arquivos com assobios
+
+```{r include  = FALSE}
+gp2 <- estacoes  %>% 
+  filter(estacao %in% c("1", "2", "3", "10", "11", "12", "14")) %>%
+  mutate(estacao = as.factor(estacao),
+                    wav_com = as.factor(wav_com),
+                    n_wav = as.factor(n_wav)) %>%
+  ggpairs (., columns = c("periodo", "n_wav", "wav_com"),
+           aes(color = estacao),
+           legend = 1)
+```
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+gp2
+```
+
+#### Período X Parâmetros sonda
+
+```{r include = FALSE}
+gp4 <- estacoes %>% 
+  filter(estacao %in% c("1", "2", "3", "10", "11", "12", "14")) %>% 
+  mutate(estacao = as.factor(estacao)) %>%
+  ggpairs (., columns = c("periodo", "Temp_m", "Sal_m", "OD_m", "Turb_m", "pH_m", "Pres_m"),
+           aes(color = estacao, alpha = 0.7),
+           legend = 1)
+```
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+gp4
+```
+
+### Por assobio {.tabset}
+
+#### Parâmetros raven
+
+```{r include = FALSE}
+ga1 <- assobios %>% 
+  ggpairs (., columns = c("DT", "LF", "HF", "MF", "CF", "APD", "PF", "FI", "FF"),
+           aes(color = periodo, alpha = 0.7),
+           legend = 1)
+```
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+
+ga1
+
+```
+
+
+
+#### Normal Quantil Plots
+
+```{r include = FALSE}
+
+gn1 <- assobios %>% ggplot(aes(sample = DT)) +
+  geom_qq(alpha = 0.1) +
+  geom_qq_line(color = "blue") +
+  labs(y = "Duração do Assobio (em segundos)",
+       x = "Teórico")
+
+gn2 <- assobios %>% ggplot(aes(sample = HF)) +
+  geom_qq(alpha = 0.1) +
+  geom_qq_line(color = "blue") +
+  labs(y = "Low Freq (Hz)",
+       x = "Teórico")
+
+gn3 <- assobios %>% ggplot(aes(sample = LF)) +
+  geom_qq(alpha = 0.1) +
+  geom_qq_line(color = "blue") +
+  labs(y = "High Freq (Hz)",
+       x = "Teórico")
+  
+gn4 <- assobios %>% ggplot(aes(sample = MF)) +
+  geom_qq(alpha = 0.1) +
+  geom_qq_line(color = "blue") +
+  labs(y = "Max Freq (Hz)",
+       x = "Teórico")
+    
+gn5 <- assobios %>% ggplot(aes(sample = CF)) +
+  geom_qq(alpha = 0.1) +
+  geom_qq_line(color = "blue") +
+  labs(y = "Center Freq (Hz)",
+       x = "Teórico")
+  
+gn6 <- assobios %>% ggplot(aes(sample = APD)) +
+  geom_qq(alpha = 0.1) +
+  geom_qq_line(color = "blue") +
+  labs(y = "Avg Power Density (dB FS)",
+       x = "Teórico")
+
+gn7 <- assobios %>% ggplot(aes(sample = DF)) +
+  geom_qq(alpha = 0.1) +
+  geom_qq_line(color = "blue") +
+  labs(y = "Delta Freq (Hz)",
+       x = "Teórico")
+
+gn8 <- assobios %>% ggplot(aes(sample = PF)) +
+  geom_qq(alpha = 0.1) +
+  geom_qq_line(color = "blue") +
+  labs(y = "Peak Freq (Hz)",
+       x = "Teórico")
+
+gn9 <- assobios %>% ggplot(aes(sample = FI)) +
+  geom_qq(alpha = 0.1) +
+  geom_qq_line(color = "blue") +
+  labs(y = "Initial Freq (Hz)",
+       x = "Teórico")
+
+gn10 <- assobios %>% ggplot(aes(sample = FF)) +
+  geom_qq(alpha = 0.1) +
+  geom_qq_line(color = "blue") +
+  labs(y = "Final Freq (Hz)",
+       x = "Teórico")
+
+PQ <- plot((gn1|gn2)/(gn3|gn4)/(gn5|gn6)/(gn7|gn8)/(gn9|gn10))
+  
+```
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+PQ
+```
+
+
+## Numérica {.tabset}
+### Shapiro-Wilk - Normalidade
+
+valores de p sao muito menores que 0.05 -> Dados nao seguem normalidade 
+
+```{r include=FALSE}
+
+lista_sha <- list()
+
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(estacoes$DT_m)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(estacoes$LF_m)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(estacoes$HF_m)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(estacoes$MF_m)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(estacoes$CF_m)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(estacoes$APD_m)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(estacoes$PF_m)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(estacoes$FI_m)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(estacoes$FF_m)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(estacoes$Temp_m)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(estacoes$Sal_m)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(estacoes$OD_m)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(estacoes$Turb_m)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(estacoes$pH_m)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(estacoes$Pres_m)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(estacoes$visibilidade)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(estacoes$beaufort)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(estacoes$cobert_nuvens)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(estacoes$reflexo)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(estacoes$veloc_vento)
+
+
+rm(tab_sha)
+
+for (i in 1:length(lista_sha)){
+  
+  if(!exists("tab_sha")) { 
+    tab_sha <- tibble(.rows = length(lista_sha),
+                      dados = NA,
+                      p_value = NA) }
+  
+  tab_sha$dados[[i]] <-  str_split_fixed(lista_sha[[i]]$data.name, "estacoes\\$",2)[[2]]
+  tab_sha$p_value[[i]] <- format(lista_sha[[i]]$p.value, digits = 3)
+   
+}
+
+
+```
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+knitr::kable(tab_sha %>% arrange(desc(as.numeric(p_value))), 
+             caption = "Teste de Normalidade")
+```
+
+
+### LM - Modelos Lineares
+
+- H0 - Não tem relação entre "var_dependente" ~ "var_independente"
+
+- H1 - Existe relação entre "var_dependente" ~ "var_independente"
+
+  - R-squared - de 0 a 1 de como o modelo está ajustados aos dados
+  - F.value - em torno de 1 se H0 é TRUE, mas muitas "var_independente" podem desde o F.
+  - p.value - A probabilidade de observar essa distribuição de dados ao acaso.
+
+
+```{r include=FALSE}
+
+lista_reg <- list()
+
+lista_reg[[length(lista_reg)+1]] <- lm(n_ass ~ Temp_m, data = estacoes)
+lista_reg[[length(lista_reg)+1]] <- lm(n_ass ~ Sal_m, data = estacoes)
+lista_reg[[length(lista_reg)+1]] <- lm(n_ass ~ OD_m, data = estacoes)
+lista_reg[[length(lista_reg)+1]] <- lm(n_ass ~ Turb_m, data = estacoes)
+lista_reg[[length(lista_reg)+1]] <- lm(n_ass ~ pH_m, data = estacoes)
+lista_reg[[length(lista_reg)+1]] <- lm(n_ass ~ Pres_m, data = estacoes)
+lista_reg[[length(lista_reg)+1]] <- lm(APD_m ~ Temp_m, data = estacoes)
+lista_reg[[length(lista_reg)+1]] <- lm(APD_m ~ Sal_m, data = estacoes)
+lista_reg[[length(lista_reg)+1]] <- lm(APD_m ~ OD_m, data = estacoes)
+lista_reg[[length(lista_reg)+1]] <- lm(APD_m ~ Turb_m, data = estacoes)
+lista_reg[[length(lista_reg)+1]] <- lm(APD_m ~ pH_m, data = estacoes)
+lista_reg[[length(lista_reg)+1]] <- lm(APD_m ~ Pres_m, data = estacoes)
+
+rm(tab_res)
+
+for (i in 1:length(lista_reg)){
+  
+  if(!exists("tab_reg")) { 
+    tab_reg <- tibble(.rows = length(lista_reg),
+                  formula = NA,
+                  intercept = NA,
+                  slope = NA,
+                  r_squared = NA,
+                  p_value = NA) }
+  
+  
+  tab_reg$formula[[i]] <- str_flatten(deparse(lista_reg[[i]]$call$formula), "")
+  tab_reg$intercept[[i]] <- round(lista_reg[[i]]$coefficients[[1]], 2)
+  tab_reg$slope[[i]] <- round(lista_reg[[i]]$coefficients[[2]], 2)
+  tab_reg$r_squared[[i]] <- round(summary(lista_reg[[i]])$r.squared, 2)
+  tab_reg$p_value[[i]] <- format(summary(lista_reg[[i]])$coefficients[[8]], digits =  3)
+  
+}
+```
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+knitr::kable(tab_reg %>% arrange(as.numeric(p_value)),
+             caption = "Regressões Lineares")
+```
+
+### ANOVA - Análise de Variância
+
+De uma via - para ver relacão entre variável contínua e uma variável categórica
+
+- H0 - não tem diferença entre as médias
+
+- H1 - Tem diferença entre as médias
+
+  - F.value - em torno de 1 se H0 é TRUE, se maior tem diferença
+ 
+  - p.value - A probabilidade de observar essa distribuição de dados ao acaso.
+
+```{r include=FALSE}
+
+lista_ano <- list()
+
+lista_ano[[length(lista_ano)+1]] <- aov(n_ass ~ profund_m, data = estacoes)
+
+rm(tab_ano)
+
+for (i in 1:length(lista_ano)){
+  
+  if(!exists("tab_ano")) { 
+    tab_ano <- tibble(.rows = length(lista_ano),
+                      formula = NA,
+                      F_value = NA,
+                      p_value = NA) }
+  
+  
+  tab_ano$formula[[i]] <- str_flatten(deparse(lista_ano[[i]]$call$formula), "")
+  tab_ano$F_value[[i]] <- round(summary(lista_ano[[i]])[[1]][[4]][[1]], 2)
+  tab_ano$p_value[[i]] <- format(summary(lista_ano[[i]])[[1]][[5]][[1]], digits =  3)
+  
+}
+
+
+```
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+knitr::kable(tab_ano %>% arrange(as.numeric(p_value)),
+             caption = "Análise de Variância - ANOVA")
+```
+
+### GLM - Modelos Lineares Generalizados
+
+GLM com distribuição Poisson
+
+O melhor modelo é que possui valores de deltaAIC mais próximos a 0
+
+```{r include=FALSE}
+library(gridExtra)
+library(ggplot2)
+library(grid)
+library(MASS)
+library(dplyr)
+library(MuMIn)
+library(modEvA)
+library(effects)
+
+#  + adiciona as variaveis a serem testadas
+#  * avalia a interaçao entre estas variaveis
+
+lista_glm <- list()
+
+lista_glm[[length(lista_glm)+1]] <- glm(n_ass ~ FI_m + FF_m + CF_m,
+                                        family = poisson, data = estacoes)
+lista_glm[[length(lista_glm)+1]] <- glm(n_ass ~ FI_m * FF_m * CF_m,
+                                        family = poisson, data = estacoes)    
+
+
+sel <- model.sel(lista_glm, rank = AIC) 
+
+calls <- attr(sel, "model.calls")
+
+tab_sel <- tibble(.rows = nrow(sel),
+                  model = "NA",
+                  call = "NA",
+                  AIC = 0,
+                  deltaAIC = 0,
+                  weights = 0,
+                  )
+  
+for (i in 1:nrow(sel)) {
+  
+  tab_sel$model[[i]] <- row.names(sel)[[i]]
+  tab_sel$call[[i]] <- str_flatten(deparse(calls[[i]]$formula), "")
+  tab_sel$AIC[[i]] <- round(sel$AIC[[i]], 2)
+  tab_sel$deltaAIC[[i]] <- round(sel$delta[[i]], 2)
+  tab_sel$weights[[i]] <- round(sel$weight[[i]], 10)
+
+}
+```
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+knitr::kable(tab_sel,
+             caption = "Modelos Lineares Generalizados")
+
+```
+
+
+
+
+
+
+### PCA
+
+```{r include = FALSE}
+library(vegan)
+
+
+```
+

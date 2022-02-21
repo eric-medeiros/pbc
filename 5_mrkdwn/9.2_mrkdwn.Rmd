@@ -1,0 +1,601 @@
+---
+title: "Ecologia Comportamental"
+author: "Equipe do Projeto Boto-Cinza"
+date: "31/01/2022"
+output:
+  html_document:
+    df_print: "paged"
+---
+
+
+# Dados 
+```{r include = FALSE}
+
+library(ggplot2)
+library(GGally)
+library(patchwork)
+library(Hmisc)
+library(cowplot)
+library(forcats)
+library(flexdashboard)
+library(ggplot2)
+library(magrittr)
+library(fontawesome)
+library(plotly)
+library(data.table)
+library(dplyr)
+library(lubridate)
+library(stringr)
+
+## Chamando e lendo o arquivo ##
+
+pasta_proj <- rprojroot::find_rstudio_root_file()
+
+bd_L2  <- readRDS(paste0(pasta_proj, "/4_export/1_banco/bd_L2.rds"))
+
+## avisando sobre a classificação das variáveis ##
+avistagens <- bd_L2$saidas %>%
+  dplyr::select(saida,rota) %>%
+  dplyr::left_join(bd_L2$avistagens, by = "saida") %>%
+  rowwise() %>%
+  mutate(tam_est = round(sum(tam_grupo, mean(c(tam_min, tam_max)), na.rm = TRUE), 0)) %>%
+  tibble::rowid_to_column("n_grupo") %>%
+  dplyr::left_join(bd_L2$embarcacoes, by = c("saida", "grupo", "data")) %>%
+  dplyr::left_join(bd_L2$comportamento, by = c("saida", "grupo", "data"))
+  
+sonda <- list()
+clima <- list()
+
+
+# Selecionando os dados da sonda do intervalo
+for (i in 1:nrow(avistagens)) {
+  sonda[[i]] <-  bd_L2$sonda[ymd_hms(bd_L2$sonda$datahora_SONDA) %within% interval(avistagens$datahora_I, avistagens$datahora_F)[[i]], ]
+  
+  clima[[i]] <-  bd_L2$clima[avistagens$datahora_I[[i]] %within% interval(bd_L2$clima$datahora_I, bd_L2$clima$datahora_F), ]
+  
+}
+
+avistagens <- bind_rows(sonda, .id = "n_grupo") %>%
+  mutate(n_grupo = as.numeric(n_grupo)) %>%
+  group_by(n_grupo) %>%
+  summarise(Temp_m = mean(Temp, na.rm = TRUE),
+            Sal_m = mean(Sal, na.rm = TRUE),
+            OD_m = mean(OD, na.rm = TRUE),
+            Turb_m = mean(Turb, na.rm = TRUE),
+            pH_m = mean(pH, na.rm = TRUE),
+            Pres_m = mean(Pres, na.rm = TRUE),
+            num_pts_s = n()) %>%
+  right_join(avistagens, by = "n_grupo") %>%
+  arrange(as.integer(n_grupo)) %>%
+  group_by(saida) %>%
+  dplyr::select(1,9:12,14,16:18,20:25,29:32,34:45,47:55,2:7)
+
+avistagens <- bind_rows(clima, .id = "n_grupo") %>%
+  mutate(n_grupo = as.numeric(n_grupo)) %>%
+  group_by(n_grupo) %>%
+  dplyr::select(1,12:17) %>%
+  right_join(avistagens, by = "n_grupo") %>%
+  arrange(as.integer(saida)) %>%
+  group_by(saida) %>%
+  dplyr::select(8:52,2:7)
+
+avistagens$coesao_grupo <- factor(avistagens$coesao_grupo, levels = c("A","B","C"))
+avistagens$coesao_af <- factor(avistagens$coesao_af, levels = c("A","B","C"))
+avistagens$rota <- factor(avistagens$rota, levels = c("3","2","1"))
+```
+
+```{r echo = FALSE}
+avistagens
+```
+
+# Análises {.tabset}
+
+## Resumos
+
+```{r include=FALSE}
+
+resumo_2 <- read.delim(paste0(pasta_proj, "/4_export/2_resumo/rel_2.txt"))
+
+res_2 <- resumo_2 %>% 
+  summarise (KM_T = sum(KM),
+             GRUPOS_T = sum(GRUPOS, na.rm = TRUE),
+             COMPS_T = sum(COMPS, na.rm = TRUE),
+             T_BARCO_T = sum(as.duration(hms(T_BARCO)), na.rm = TRUE),
+             T_BOTO_T = sum(as.duration(hms(T_BOTO)), na.rm = TRUE)) %>%
+  mutate (T_BARCO_T = seconds_to_period(T_BARCO_T),
+          T_BOTO_T = seconds_to_period(T_BOTO_T),
+          CONSUMO_L =  sum(bd_L2$saidas$litros_consumidos, na.rm = TRUE))
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+res_2
+```
+
+## Gráfica {.tabset}
+
+### Tamanho de grupo
+
+```{r include = FALSE}
+p1 <- ggplot(data = avistagens,
+             aes(x = rota,
+                 y = tam_est,
+                 fill = rota)) +
+  geom_violin(linetype = "blank",
+              alpha = 0.2) +
+  geom_jitter(alpha = 0.2,
+              size = 1,
+              width = 0.05,
+              height = 0.15) +
+  coord_flip() +
+  stat_summary(fun = mean,
+               geom = "point",
+               color = "black",
+               size = 3) +
+  xlab("Rota") +
+  ylab("Tamanho de grupo") +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        legend.position = "none") 
+
+#numero de adultos por rota
+
+p2 <- ggplot(data = avistagens,
+             aes(rota,
+                 y = n_adultos,
+                 fill = rota)) +
+  geom_violin(linetype = "blank",
+              alpha = 0.2,
+              na.rm = TRUE) +
+  geom_jitter(alpha = 0.2,
+              size = 1,
+              width = 0.05,
+              height = 0.15,
+              na.rm = TRUE) +
+  coord_flip() +
+  stat_summary(fun = mean,
+               geom = "point",
+               color = "black",
+               size = 3,
+               na.rm = TRUE) +
+  xlab("Rota") +
+  ylab("Numero de adultos avistados") +
+  ylim(c(0,20)) +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        legend.position="none")
+
+#numero de juvenis por rota
+p3 <- ggplot(data = avistagens,
+             aes(x = rota,
+                 y = n_juvenis,
+                 fill = rota)) +
+  geom_violin(linetype = "blank",
+              alpha = 0.2,
+              na.rm = TRUE) +
+  geom_jitter(alpha = 0.2,
+              size = 1,
+              width = 0.05,
+              height = 0.15,
+              na.rm = TRUE) +
+  coord_flip() +
+  stat_summary(fun = mean,
+               geom = "point",
+               color = "black",
+               size = 2.5,
+               na.rm = TRUE) +
+  xlab("Rota") +
+  ylab("Numero de juvenis avistados") +
+  ylim(c(0,20)) +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        legend.position = "none") 
+
+## Numero de infantes por rota
+p4 <- ggplot(data = avistagens,
+             aes(x = rota,
+                 y = n_infantes,
+                 fill = rota)) +
+  geom_violin(linetype = "blank",
+              alpha = 0.2,
+              na.rm = TRUE) +
+  geom_jitter(alpha = 0.2,
+              size = 1,
+              width = 0.05,
+              height = 0.15,
+              na.rm = TRUE) +
+  coord_flip() +
+  stat_summary(fun = mean,
+               geom = "point",
+               color = "black",
+               size = 3,
+               na.rm = TRUE) +
+  xlab("Rota") +
+  ylab("Numero de infantes avistados") +
+  ylim(c(0,20)) + 
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        legend.position = "none")  
+
+
+## Numero de neonatos por rota
+p5 <- ggplot(data = avistagens,
+             aes(x = rota,
+                 y = n_neonatos,
+                 fill = rota)) +
+  geom_violin(linetype = "blank",
+              alpha = 0.2,
+              na.rm = TRUE) +
+  geom_jitter(alpha = 0.1,
+              size = 1,
+              width = 0.05,
+              height = 0.15,
+              na.rm = TRUE) +
+  coord_flip() +
+  stat_summary(fun = mean,
+               geom = "point",
+               color = "black",
+               size = 3,
+               na.rm = TRUE) +
+  xlab("Rota") +
+  ylab("Numero de neonatos avistados") +
+  ylim(c(0,20)) + 
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        legend.position="none")
+
+```
+
+```{r include = FALSE}
+plot_patch <- plot(p1|(p2/p3/p4/p5))
+
+plot_patch_a <- plot_patch + plot_annotation(
+         title = "Distribuição das contagens de tamanho e composição de grupo")
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+plot_patch_a
+
+```
+
+### Presença de embarcação
+
+```{r include = FALSE}
+gemb <- avistagens %>%
+  ungroup %>%
+  dplyr::select(agrupamento_embarcacao, rota, coesao_grupo, tam_est) %>%
+  ggpairs(., columns = 4:2, aes( color = agrupamento_embarcacao), legend = 1)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+gemb
+```
+
+### Rota
+
+```{r include = FALSE}
+grota <- avistagens %>%
+  ungroup %>%
+  dplyr::select(agrupamento_embarcacao, rota, coesao_grupo, tam_est) %>%
+  ggpairs(., columns = c(4,3,1), aes(color = rota), legend = 1)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+grota
+```
+
+### Composição
+
+```{r include = FALSE}
+gcomp <- avistagens %>%
+  ungroup %>%
+  ggpairs(., columns = c("rota", "coesao_grupo", "n_adultos", "n_juvenis", "n_infantes"), aes( color = agrupamento_embarcacao, alpha = 0.7), legend = 1)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+gcomp
+```
+
+### Sonda
+
+Só rotas 1 e 2
+
+```{r include = FALSE}
+gsonda <- avistagens %>%
+  ungroup %>%
+  filter(rota != 3) %>%
+  ggpairs(., columns = c("Temp_m", "Sal_m", "OD_m", "Turb_m", "pH_m", "Pres_m"), aes(color = rota, alpha = 0.7), legend = 1)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+gsonda
+```
+
+### Clima
+
+Só rotas 1 e 2
+
+```{r include = FALSE}
+gclima <- avistagens %>%
+  ungroup %>%
+  filter(rota != 3) %>%
+  ggpairs(., columns = c("reflexo", "cobert_nuvens", "beaufort", "veloc_vento", "dir_vento"), aes(color = rota, alpha = 0.7), legend = 1)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+gclima
+```
+
+
+### Barcos
+
+Só rotas 1 e 2 + grupos com presença de embarcação
+
+```{r include = FALSE}
+gbarco <- avistagens %>%
+  ungroup %>%
+  filter(rota != 3,
+         barco == 1) %>%
+  ggpairs(., columns = c("motor", "tipo", "tempo", "distancia", "velocidade"), aes(color = rota, alpha = 0.7), legend = 1)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+gbarco
+```
+
+## Numérica {.tabset}
+
+### Shapiro-Wilk - Normalidade
+valores de p sao muito menores que 0.05 -> Dados nao seguem normalidade 
+
+```{r include=FALSE}
+
+lista_sha <- list()
+
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(avistagens$n_adultos)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(avistagens$n_juvenis)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(avistagens$n_infantes)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(avistagens$tam_est)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(avistagens$Temp_m)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(avistagens$Sal_m)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(avistagens$OD_m)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(avistagens$Turb_m)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(avistagens$pH_m)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(avistagens$Pres_m)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(avistagens$visibilidade)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(avistagens$beaufort)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(avistagens$cobert_nuvens)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(avistagens$reflexo)
+lista_sha[[length(lista_sha)+1]] <- shapiro.test(avistagens$veloc_vento)
+
+
+rm(tab_sha)
+
+for (i in 1:length(lista_sha)){
+  
+  if(!exists("tab_sha")) { 
+    tab_sha <- tibble(.rows = length(lista_sha),
+                      dados = NA,
+                      p_value = NA) }
+  
+  tab_sha$dados[[i]] <- str_sub(lista_sha[[i]]$data.name, 12, -1)
+  tab_sha$p_value[[i]] <- format(lista_sha[[i]]$p.value, digits = 3)
+   
+}
+
+
+```
+
+```{r echo = FALSE}
+knitr::kable(tab_sha %>% arrange(desc(as.numeric(p_value))), 
+             caption = "Teste de Normalidade")
+```
+
+### LM - Modelos Lineares
+
+- H0 - Não tem relação entre "var_dependente" ~ "var_independente"
+
+- H1 - Existe relação entre "var_dependente" ~ "var_independente"
+
+  - R-squared - de 0 a 1 de como o modelo está fitting os dados
+  - F.value - em torno de 1 se H0 é TRUE, mas muitas "var_independente" podem desde o F.
+  - p.value - A probabilidade de observar essa distribuição de dados ao acaso.
+
+```{r include=FALSE}
+
+lista_reg <- list()
+
+lista_reg[[length(lista_reg)+1]] <- lm(tam_est ~ Temp_m, data = avistagens)
+lista_reg[[length(lista_reg)+1]] <- lm(tam_est ~ Sal_m, data = avistagens)
+lista_reg[[length(lista_reg)+1]] <- lm(tam_est ~ OD_m, data = avistagens)
+lista_reg[[length(lista_reg)+1]] <- lm(tam_est ~ Turb_m, data = avistagens)
+lista_reg[[length(lista_reg)+1]] <- lm(tam_est ~ pH_m, data = avistagens)
+lista_reg[[length(lista_reg)+1]] <- lm(tam_est ~ Pres_m, data = avistagens)
+
+rm(tab_res)
+
+for (i in 1:length(lista_reg)){
+  
+  if(!exists("tab_reg")) { 
+    tab_reg <- tibble(.rows = length(lista_reg),
+                  formula = NA,
+                  intercept = NA,
+                  slope = NA,
+                  r_squared = NA,
+                  p_value = NA) }
+  
+  tab_reg$formula[[i]] <- str_flatten(deparse(lista_reg[[i]]$call$formula), "")
+  tab_reg$intercept[[i]] <- round(lista_reg[[i]]$coefficients[[1]], 2)
+  tab_reg$slope[[i]] <- round(lista_reg[[i]]$coefficients[[2]], 2)
+  tab_reg$r_squared[[i]] <- round(summary(lista_reg[[i]])$r.squared, 2)
+  tab_reg$p_value[[i]] <- format(summary(lista_reg[[i]])$coefficients[[8]], digits =  3)
+  
+}
+
+```
+
+```{r echo = FALSE}
+knitr::kable(tab_reg %>% arrange(desc(as.numeric(p_value))),
+             caption = "Regressões Lineares")
+```
+
+### ANOVA - Análise de Variância
+De uma via - para ver relacão entre variável contínua e uma variável categórica
+
+- H0 - não tem diferença entre as médias
+
+- H1 - Tem diferença entre as médias
+
+  - F.value - em torno de 1 se H0 é TRUE, se maior tem diferença
+ 
+  - p.value - A probabilidade de observar essa distribuição de dados ao acaso.
+
+```{r include=FALSE}
+
+lista_ano <- list()
+
+lista_ano[[length(lista_ano)+1]] <- aov(tam_est ~ rota, data = avistagens)
+lista_ano[[length(lista_ano)+1]] <- aov(n_adultos ~ rota, data = avistagens)
+lista_ano[[length(lista_ano)+1]] <- aov(n_juvenis ~ rota, data = avistagens)
+lista_ano[[length(lista_ano)+1]] <- aov(n_infantes ~ rota, data = avistagens)
+lista_ano[[length(lista_ano)+1]] <- aov(n_neonatos ~ rota, data = avistagens)
+lista_ano[[length(lista_ano)+1]] <- aov(tam_est ~ coesao_grupo, data = avistagens)
+lista_ano[[length(lista_ano)+1]] <- aov(n_adultos ~ coesao_grupo, data = avistagens)
+lista_ano[[length(lista_ano)+1]] <- aov(n_juvenis ~ coesao_grupo, data = avistagens)
+lista_ano[[length(lista_ano)+1]] <- aov(n_infantes ~ coesao_grupo, data = avistagens)
+lista_ano[[length(lista_ano)+1]] <- aov(n_neonatos ~ coesao_grupo, data = avistagens)
+
+rm(tab_ano)
+
+for (i in 1:length(lista_ano)){
+  
+  if(!exists("tab_ano")) { 
+    tab_ano <- tibble(.rows = length(lista_ano),
+                  formula = NA,
+                  F_value = NA,
+                  p_value = NA) }
+  
+  tab_ano$formula[[i]] <- str_flatten(deparse(lista_ano[[i]]$call$formula), "")
+  tab_ano$F_value[[i]] <- round(summary(lista_ano[[i]])[[1]][[4]][[1]], 2)
+  tab_ano$p_value[[i]] <- format(summary(lista_ano[[i]])[[1]][[5]][[1]], digits = 3)
+  
+}
+
+
+```
+
+```{r echo = FALSE}
+knitr::kable(tab_ano %>% arrange(desc(as.numeric(p_value))),
+             caption = "Análise de Variância - ANOVA")
+```
+
+### GLM - Modelos Lineares Generalizados
+
+GLM com distribuição Poisson
+
+O melhor modelo é que possui valores de deltaAIC mais próximos a 0
+
+```{r include=FALSE}
+library(gridExtra)
+library(ggplot2)
+library(grid)
+library(MASS)
+library(dplyr)
+library(MuMIn)
+library(modEvA)
+library(effects)
+
+#  + adiciona as variaveis a serem testadas
+#  * avalia a interaçao entre estas variaveis
+
+lista_glm <- list()
+
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + rota + Temp_m + Sal_m + OD_m + Turb_m + pH_m + Pres_m + agrupamento_embarcacao + veloc_vento + beaufort + cobert_nuvens + visibilidade + reflexo,
+          family = poisson, data = avistagens)
+
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + rota + Temp_m + Sal_m + Turb_m + pH_m + Pres_m + agrupamento_embarcacao + veloc_vento + beaufort + cobert_nuvens + visibilidade + reflexo,
+          family = poisson, data = avistagens)
+
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + rota + Temp_m + Sal_m + Turb_m + pH_m + Pres_m + agrupamento_embarcacao + beaufort + cobert_nuvens + visibilidade + reflexo,
+          family = poisson, data = avistagens)
+
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + rota + Temp_m + Sal_m + Turb_m + pH_m + Pres_m + agrupamento_embarcacao + beaufort + cobert_nuvens + reflexo,
+          family = poisson, data = avistagens)
+
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + rota + Temp_m + Sal_m + Turb_m + pH_m + Pres_m + agrupamento_embarcacao + cobert_nuvens + reflexo,
+          family = poisson, data = avistagens)
+
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + rota + Temp_m + Sal_m + Turb_m + pH_m + agrupamento_embarcacao + cobert_nuvens + reflexo,
+          family = poisson, data = avistagens)
+
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + rota + Temp_m + Sal_m + Turb_m + pH_m + agrupamento_embarcacao + cobert_nuvens,
+          family = poisson, data = avistagens)
+
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + rota + Temp_m + Sal_m + Turb_m + pH_m + agrupamento_embarcacao + reflexo,
+          family = poisson, data = avistagens)
+
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + rota + Temp_m + Sal_m + Turb_m + pH_m + cobert_nuvens + reflexo,
+          family = poisson, data = avistagens)
+
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + rota + Temp_m + Sal_m + Turb_m + agrupamento_embarcacao + cobert_nuvens + reflexo,
+          family = poisson, data = avistagens)
+
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + rota + Temp_m + Sal_m + pH_m + agrupamento_embarcacao + cobert_nuvens + reflexo,
+          family = poisson, data = avistagens)
+
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + rota + Temp_m + Turb_m + pH_m + agrupamento_embarcacao + cobert_nuvens + reflexo,
+          family = poisson, data = avistagens)
+
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + rota + Sal_m + Turb_m + pH_m + agrupamento_embarcacao + cobert_nuvens + reflexo,
+          family = poisson, data = avistagens)
+
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + Temp_m + Sal_m + Turb_m + pH_m + agrupamento_embarcacao + cobert_nuvens + reflexo,
+          family = poisson, data = avistagens)
+
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ rota + Temp_m + Sal_m + Turb_m + pH_m + agrupamento_embarcacao + cobert_nuvens + reflexo,
+          family = poisson, data = avistagens)
+
+sel <- model.sel(lista_glm, rank = AIC) 
+
+sel
+```
+
+```{r include=FALSE}
+calls <- attr(sel, "model.calls")
+
+tab_sel <- tibble(.rows = nrow(sel),
+                  model = "NA",
+                  call = "NA",
+                  AIC = 0,
+                  deltaAIC = 0,
+                  weights = 0,
+                  )
+  
+for (i in 1:nrow(sel)) {
+  
+  tab_sel$model[[i]] <- row.names(sel)[[i]]
+  tab_sel$call[[i]] <- str_flatten(deparse(calls[[i]]$formula), "")
+  tab_sel$AIC[[i]] <- round(sel$AIC[[i]], 2)
+  tab_sel$deltaAIC[[i]] <- round(sel$delta[[i]], 2)
+  tab_sel$weights[[i]] <- round(sel$weight[[i]], 10)
+
+}
+```
+
+```{r echo = FALSE}
+knitr::kable(tab_sel,
+             caption = "Modelos Lineares Generalizados")
+```
+
+
+
