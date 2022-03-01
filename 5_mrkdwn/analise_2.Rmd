@@ -1,5 +1,5 @@
 ---
-title: "Padrões Populacionais"
+title: "Ecologia Comportamental"
 author: "Equipe do Projeto Boto-Cinza"
 date: "31/01/2022"
 output:
@@ -8,9 +8,8 @@ output:
 ---
 
 
-# Dados 
+# Dados {.tabset .tabset-pills .tabset-fade}
 ```{r include = FALSE}
-
 library(ggplot2)
 library(GGally)
 library(patchwork)
@@ -26,30 +25,64 @@ library(data.table)
 library(dplyr)
 library(lubridate)
 library(stringr)
+library(tidyr)
 
 ## Chamando e lendo o arquivo ##
 
 pasta_proj <- rprojroot::find_rstudio_root_file()
 
-bd_L1  <- readRDS(paste0(pasta_proj, "/4_export/1_banco/bd_L1.rds"))
+bd_L2  <- readRDS(paste0(pasta_proj, "/4_export/1_banco/bd_L2.rds"))
 
-## avisando sobre a classificação das variáveis ##
-avistagens <- bd_L1$saidas %>%
-  dplyr::select(saida,rota) %>%
-  dplyr::left_join(bd_L1$avistagens, by = "saida") %>%
+embarcacoes <- bd_L2$embarcacoes %>% 
+  group_by(saida, data, grupo) %>%
+  summarise(.groups = "keep",
+            n_barcos = n(),
+            n_MP = sum(motor == "MP"),
+            n_MC = sum(motor == "MC"),
+            n_balsa = sum(tipo == "balsa", na.rm = TRUE) + sum(tipo == "Balsa", na.rm = TRUE),
+            n_canoa = sum(tipo == "canoa", na.rm = TRUE),
+            n_lancha = sum(tipo == "lancha", na.rm = TRUE),
+            n_voadeira = sum(tipo == "voadeira", na.rm = TRUE),
+            n_PA = sum(tempo == "PA", na.rm = TRUE),
+            n_PE = sum(tempo == "PE", na.rm = TRUE),
+            distancia_m = round(mean(distancia, na.rm = TRUE),0),
+            mud_coe_af_s = sum(mud_coe_af, na.rm = TRUE),
+            mud_tam_gru_s = sum(mud_tam_gru, na.rm = TRUE),
+            mud_comp_gru_s = sum(mud_comp_gru, na.rm = TRUE))
+
+comportamento <- bd_L2$comportamento %>%
+  group_by(saida, data, grupo) %>%
+  summarise(.groups = "keep",
+            na_s = sum(na, na.rm = TRUE),
+            cre_s = sum(cre, na.rm = TRUE),
+            esc_s = sum(esc, na.rm = TRUE),
+            cond_s = sum(cond, na.rm = TRUE),
+            rvz_s = sum(rvz, na.rm = TRUE),
+            int_s = sum(int, na.rm = TRUE),
+            bar_s = sum(bar, na.rm = TRUE))
+
+avistagens <- bd_L2$amostragens %>%
+  select (saida,rota) %>%
+  right_join(bd_L2$avistagens, by = "saida") %>%
   rowwise() %>%
   mutate(tam_est = round(sum(tam_grupo, mean(c(tam_min, tam_max)), na.rm = TRUE), 0)) %>%
-  tibble::rowid_to_column("n_grupo")
-  
+  ungroup() %>%
+  tibble::rowid_to_column("n_grupo") %>%
+  left_join(embarcacoes, by = c("saida", "grupo", "data")) %>%
+  dplyr::select(-"OBS") %>%
+  left_join(comportamento, by = c("saida", "grupo", "data"))
+
+
+
 sonda <- list()
 clima <- list()
 
 
 # Selecionando os dados da sonda do intervalo
 for (i in 1:nrow(avistagens)) {
-  sonda[[i]] <-  bd_L1$sonda[ymd_hms(bd_L1$sonda$datahora_SONDA) %within% interval(avistagens$datahora_I, avistagens$datahora_F)[[i]], ]
+  sonda[[i]] <-  bd_L2$sonda[ymd_hms(bd_L2$sonda$datahora_SONDA) %within% interval(avistagens$datahora_I, avistagens$datahora_F)[[i]], ]
   
-  clima[[i]] <-  bd_L1$clima[avistagens$datahora_I[[i]] %within% interval(bd_L1$clima$datahora_I, bd_L1$clima$datahora_F), ]
+  clima[[i]] <-  bd_L2$clima[avistagens$datahora_I[[i]] %within% interval(bd_L2$clima$datahora_I, bd_L2$clima$datahora_F), ]
   
 }
 
@@ -66,119 +99,94 @@ avistagens <- bind_rows(sonda, .id = "n_grupo") %>%
   right_join(avistagens, by = "n_grupo") %>%
   arrange(as.integer(n_grupo)) %>%
   group_by(saida) %>%
-  dplyr::select(1,9:34,2:8)
+  dplyr::select(1,9:53,2:8)
 
 avistagens <- bind_rows(clima, .id = "n_grupo") %>%
   mutate(n_grupo = as.numeric(n_grupo)) %>%
   group_by(n_grupo) %>%
-  select(1,12:17) %>%
+  summarise(.groups = "keep",
+            dir_vento = last(dir_vento),
+            veloc_vento = mean(veloc_vento, na.rm = TRUE),
+            beaufort = mean(beaufort, na.rm = TRUE),
+            cobert_nuvens = mean(cobert_nuvens, na.rm = TRUE),
+            visibilidade = mean(visibilidade, na.rm = TRUE),
+            reflexo = mean(reflexo, na.rm = TRUE)) %>%
   right_join(avistagens, by = "n_grupo") %>%
-  arrange(as.integer(saida)) %>%
+  arrange(as.integer(n_grupo)) %>%
   group_by(saida) %>%
-  dplyr::select(8:31,33:40,2:7)
+  dplyr::select(8:59,2:7)
 
-avistagens$coesao <- factor(avistagens$coesao, levels = c("A","B","C"))
+avistagens$coesao_grupo <- factor(avistagens$coesao_grupo, levels = c("A","B","C"))
+avistagens$coesao_af <- factor(avistagens$coesao_af, levels = c("A","B","C"))
 avistagens$rota <- factor(avistagens$rota, levels = c("3","2","1"))
-avistagens$estado <- factor(avistagens$estado, levels = c("D", "F", "NA", "S")) 
+
+
+eventos <- bd_L2$embarcacoes[,c("saida", "grupo")] %>%
+  group_by(saida, grupo) %>%
+  summarise(.groups = "keep", n_barco = n()) %>%
+  right_join(bd_L2$avistagens, by = c("saida", "grupo")) %>%
+  group_by(saida, grupo, n_barco) %>%
+  transmute(tempo = period_to_seconds(as.period(interval(ymd_hms(datahora_I), ymd_hms(datahora_F))))) %>%
+  right_join(bd_L2$comportamento, by = c("saida", "grupo")) %>%
+  left_join(bd_L2$amostragens[,c("saida","rota")], by = "saida") %>%
+  group_by(saida, grupo, rota, n_barco, tempo) %>%
+  summarise(.groups = "keep",
+            s_na = sum(na, na.rm = TRUE),
+            s_dg = sum(dois_grupos, na.rm = TRUE),
+            s_vg = sum(varios_grupos, na.rm = TRUE),
+            s_cre = sum(cre, na.rm = TRUE),
+            s_esc = sum(esc, na.rm = TRUE),
+            s_rvz = sum(rvz, na.rm = TRUE),
+            s_int = sum(int, na.rm = TRUE))
+
+eventos$n_barco <- nafill(eventos$n_barco, "const", 0)
+eventos$pres_barco <- as.logical(eventos$n_barco)
+
+eventos <- pivot_longer(eventos,
+                        cols = starts_with("s_"),
+                        names_to = "comportamento",
+                        names_prefix = "s_",
+                        values_to = "n_comp",
+                        values_drop_na = TRUE)
 
 
 ```
 
+## Avistagens
 ```{r echo = FALSE}
 avistagens
 ```
 
-# Análises {.tabset}
+## Eventos
+```{r echo = FALSE}
+eventos
+```
+
+# Análises {.tabset .tabset-pills .tabset-fade}
 
 ## Resumos
 
 ```{r include=FALSE}
 
-resumo_1 <- read.delim(paste0(pasta_proj, "/4_export/2_resumo/rel_1.txt"))
+resumo_2 <- read.delim(paste0(pasta_proj, "/4_export/2_resumo/rel_2.txt"))
 
-res_1 <- resumo_1 %>% 
+res_2 <- resumo_2 %>% 
   summarise (KM_T = sum(KM),
-             GRUPOS_T = sum(GRUPOS),
-             FOTO_T = sum(FOTOS),
-             T_BARCO_T = sum(as.duration(hms(T_BARCO))),
-             T_BOTO_T = sum(as.duration(hms(T_BOTO)))) %>%
+             GRUPOS_T = sum(GRUPOS, na.rm = TRUE),
+             COMPS_T = sum(COMPS, na.rm = TRUE),
+             T_BARCO_T = sum(as.duration(hms(T_BARCO)), na.rm = TRUE),
+             T_BOTO_T = sum(as.duration(hms(T_BOTO)), na.rm = TRUE)) %>%
   mutate (T_BARCO_T = seconds_to_period(T_BARCO_T),
           T_BOTO_T = seconds_to_period(T_BOTO_T),
-          CONSUMO_L =  sum(bd_L1$saidas$litros_consumidos, na.rm = TRUE))
+          CONSUMO_L =  sum(bd_L2$saidas$litros_consumidos, na.rm = TRUE))
 
-```
-
-```{r echo = FALSE}
-res_1
-```
-
-## Estimativa
-
-* Código cópia do arquivo "/3_user/7_mark.R"
-
-```{r include = FALSE}
-
-library(magrittr)
-library(dplyr)
-library(lubridate)
-library(tidyr)
-library(RMark)
-
-# Histórico de capturas
-
-pasta_proj <- rprojroot::find_rstudio_root_file()
-
-nova_pasta <- paste0(pasta_proj, "/4_export/7_mark")
-dir.create(nova_pasta)
-setwd(nova_pasta)
-
-
-bd_L1 <- readRDS(paste0(pasta_proj,"/4_export/1_banco/bd_L1.rds"))
-
-historico_dia <- bd_L1$identificacoes %>%
-  group_by(ID) %>%
-  mutate(data = date(datahora),
-         avis = 1L) %>%
-  dplyr::select(ID, data, avis) %>%
-  na.omit()
-
-
-mark_dia <- historico_dia %>%
-  pivot_wider(names_from = data,
-              values_from = avis,
-              values_fn = list(avis = mean),
-              values_fill = 0) %>%
-  unite("ch", 2:tail(names(.),1), sep = "") %>%
-  dplyr::select(2,1)
-
-dp_dia <- process.data(mark_dia, model = "Closed")
-
-result <- mark(dp_dia)
-
-cleanup(ask = FALSE)
-
-setwd(pasta_proj)
-
-
-```
-
-```{r include=FALSE}
-
-res_mark <- result$results$derived$`N Population Size`
-
-res_mark$model.call <- as.character(result$model.name)
-res_mark$model <- result$model
-
-setwd(pasta_proj)
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-
-res_mark
-
+res_2
 ```
 
-## Gráfica {.tabset}
+## Gráfica {.tabset .tabset-pills .tabset-fade}
 
 ### Tamanho de grupo
 
@@ -329,113 +337,112 @@ plot_patch_a <- plot_patch + plot_annotation(
          title = "Distribuição das contagens de tamanho e composição de grupo")
 ```
 
-```{r echo = FALSE}
-
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 plot_patch_a
 
 ```
 
-### Estado comportamental
+### Tam_est x coe x rota
 
 ```{r include = FALSE}
-
-data_T <- avistagens %>% group_by(estado) %>% summarise(n())
-data_1 <- avistagens %>% group_by(estado) %>% filter(rota == 1) %>% summarise(n())
-data_2 <- avistagens %>% group_by(estado) %>% filter(rota == 2) %>% summarise(n())
-data_3 <- avistagens %>% group_by(estado) %>% filter(rota == 3) %>% summarise(n())
-
-p1 <- ggplot(data = data_T,
-             aes(x = "",
-                 y = estado,
-                 fill = estado)) +
-  geom_col() +
-  coord_polar(theta = "y") +
-  theme_void() +
-  labs(title  = "Estado em todas as áreas")
-
-
-p2 <- ggplot(data = data_1,
-             aes(x = "",
-                 y = estado,
-                 fill = estado)) +
-  geom_col() +
-  coord_polar(theta = "y") +
-  theme_void() +
-  labs(title  = "Estado na Área 1 - Taquari")
-
-p3 <- ggplot(data = data_2,
-             aes(x = "",
-                 y = estado,
-                 fill = estado)) +
-  geom_col() +
-  coord_polar(theta = "y") +
-  theme_void() +
-  labs(title  = "Estado na Área 2 - Trapandé")
-
-p4 <- ggplot(data = data_3,
-             aes(x = "",
-                 y = estado,
-                 fill = estado)) +
-  geom_col() +
-  coord_polar(theta = "y") +
-  theme_void() +
-  labs(title  = "Estado na Área 3 - Norte")
-
-```
-
-```{r include = FALSE}
-plot_patch <- plot(p1|(p2/p3/p4))
-
-```
-
-```{r echo = FALSE}
-
-plot_patch
-
-```
-
-### Número de fotos
-
-```{r include = FALSE}
-gfoto <- avistagens %>%
+gemb <- avistagens %>%
   ungroup %>%
-  ggpairs(., columns = c("num_fotos", "coesao", "tam_est"), aes( color = rota, alpha = 0.7), legend = 1)
+  dplyr::select(agrupamento_embarcacao, rota, coesao_grupo, tam_est) %>%
+  ggpairs(., columns = 4:2, aes( color = agrupamento_embarcacao, alpha = 0.7), legend = 1)
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-gfoto
+gemb
 ```
 
-### Estado Comportamental
+### Tam_est x coe x barco
 
 ```{r include = FALSE}
-gesta <- avistagens %>%
+grota <- avistagens %>%
   ungroup %>%
-  ggpairs(., columns = c("coesao", "tam_est", "estado"), aes( color = rota, alpha = 0.7), legend = 1)
+  dplyr::select(agrupamento_embarcacao, rota, coesao_grupo, tam_est) %>%
+  ggpairs(., columns = c(4,3,1), aes(color = rota), legend = 1)
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-gesta
+grota
 ```
 
-### Composição
+### Frequencias de comportamento
+
+```{r include = FALSE}
+dados_gfreq <- eventos %>% 
+  mutate (comportamento = factor(comportamento, levels = c("na", "esc", "cre", "rvz","int", "dg", "vg"))) %>%
+  group_by(rota, comportamento, pres_barco) %>%
+  summarise(.groups = "keep",
+            freq = sum(n_comp, na.rm = TRUE) / sum(tempo, na.rm = TRUE),
+            freq_sd = sd(n_comp / tempo, na.rm = TRUE))
+
+gfreq <- ggplot(data=dados_gfreq, aes(x=pres_barco, y=freq, fill=comportamento)) +
+  geom_bar(stat="identity", width = 0.65, position=position_dodge(width = 0.7)) +
+  # geom_errorbar(aes(ymin = freq - freq_sd,
+  #                    ymax = freq + freq_sd),
+  #                width = 0.65,
+  #                size = 1,
+  #                position = position_dodge(0.7))  +
+  facet_grid(~ rota,
+             labeller = labeller(rota = c("1" = "Rota 1",
+                                          "2" = "Rota 2"))) +
+  ylab("Frequência relativa dos eventos comportamentais") +
+  scale_x_discrete(name = "Presença de embarcações",
+                   labels = c("Sem barco", "Com barco(s)")) +
+  theme_bw() +
+  scale_y_continuous(limits = c(0,0.0035)) + 
+  labs(fill="comportamento") +
+  scale_fill_discrete(name = "Eventos",
+                      labels = c("nado acompanhado", "escolta", "creche", "revezamento", "interceptação", "dois grupos", "vários grupos"))
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+gfreq
+```
+
+
+### Rota x coe x n_adultos x n_juvenis x n_infantes
 
 ```{r include = FALSE}
 gcomp <- avistagens %>%
   ungroup %>%
-  ggpairs(., columns = c("tam_est", "coesao", "n_adultos", "n_juvenis", "n_infantes"), aes( color = rota, alpha = 0.7), legend = 1)
+  ggpairs(., columns = c("n_adultos", "n_juvenis", "n_infantes", "tam_est", "rota", "coesao_grupo"), aes( color = agrupamento_embarcacao, alpha = 0.7), legend = 1) +
+  theme(axis.text.x = element_text(angle = 90))
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 gcomp
 ```
 
+### Rota x coe x n_barcos x distancia x mudanças
+
+```{r include = FALSE}
+gcompor <- avistagens %>%
+  filter(!is.na(n_barcos),
+         rota != 3) %>%
+  ggpairs(., columns = c("rota", "coesao_grupo", "n_barcos", "distancia_m", "mud_coe_af_s", "mud_tam_gru_s", "mud_comp_gru_s"), aes( alpha = 0.7), legend = 1) +
+   theme(axis.text.x = element_text(angle = 90))
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+gcompor
+```
+
+
+
 ### Sonda
+
+Só rotas 1 e 2
 
 ```{r include = FALSE}
 gsonda <- avistagens %>%
   ungroup %>%
-  ggpairs(., columns = c("Temp_m", "Sal_m", "OD_m", "Turb_m", "pH_m", "Pres_m"), aes(color = rota, alpha = 0.7), legend = 1)
+  filter(rota != 3) %>%
+  ggpairs(., columns = c("Temp_m", "Sal_m", "OD_m", "Turb_m", "pH_m", "Pres_m"), aes(color = rota, alpha = 0.7), legend = 1) +
+  theme(axis.text.x = element_text(angle = 90))
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -444,10 +451,14 @@ gsonda
 
 ### Clima
 
+Só rotas 1 e 2
+
 ```{r include = FALSE}
 gclima <- avistagens %>%
   ungroup %>%
-  ggpairs(., columns = c("reflexo", "cobert_nuvens", "beaufort", "veloc_vento", "dir_vento"), aes(color = rota, alpha = 0.7), legend = 1)
+  filter(rota != 3) %>%
+  ggpairs(., columns = c("reflexo", "cobert_nuvens", "beaufort", "veloc_vento", "dir_vento"), aes(color = rota, alpha = 0.7), legend = 1) +
+   theme(axis.text.x = element_text(angle = 90))
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -455,11 +466,24 @@ gclima
 ```
 
 
-## Numérica {.tabset}
+### Barcos
+
+```{r include = FALSE}
+gbarco <- bd_L2$amostragens %>%
+  dplyr::select(saida,rota) %>%
+  right_join(bd_L2$embarcacoes, by = "saida") %>%
+  ggpairs(., columns = c("motor", "tipo", "tempo", "distancia", "velocidade"), aes(color = rota, alpha = 0.7), legend = 1) +
+   theme(axis.text.x = element_text(angle = 90))
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+gbarco
+```
+
+## Numérica {.tabset .tabset-pills .tabset-fade}
 
 ### Shapiro-Wilk - Normalidade
-
-valores de p sao muito menores que 0.05 -> Dados não seguem normalidade 
+valores de p sao muito menores que 0.05 -> Dados nao seguem normalidade 
 
 ```{r include=FALSE}
 
@@ -506,9 +530,9 @@ knitr::kable(tab_sha %>% arrange(desc(as.numeric(p_value))),
 
 ### LM - Modelos Lineares
 
-- H0 - Não tem relação entre "var_explicativa" ~ "var_independente"
+- H0 - Não tem relação entre "var_dependente" ~ "var_independente"
 
-- H1 - Existe relação entre "var_explicativa" ~ "var_independente"
+- H1 - Existe relação entre "var_dependente" ~ "var_independente"
 
   - R-squared - de 0 a 1 de como o modelo está fitting os dados
   - F.value - em torno de 1 se H0 é TRUE, mas muitas "var_independente" podem desde o F.
@@ -552,8 +576,6 @@ knitr::kable(tab_reg %>% arrange(desc(as.numeric(p_value))),
              caption = "Regressões Lineares")
 ```
 
-
-
 ### ANOVA - Análise de Variância
 De uma via - para ver relacão entre variável contínua e uma variável categórica
 
@@ -574,11 +596,11 @@ lista_ano[[length(lista_ano)+1]] <- aov(n_adultos ~ rota, data = avistagens)
 lista_ano[[length(lista_ano)+1]] <- aov(n_juvenis ~ rota, data = avistagens)
 lista_ano[[length(lista_ano)+1]] <- aov(n_infantes ~ rota, data = avistagens)
 lista_ano[[length(lista_ano)+1]] <- aov(n_neonatos ~ rota, data = avistagens)
-lista_ano[[length(lista_ano)+1]] <- aov(tam_est ~ coesao, data = avistagens)
-lista_ano[[length(lista_ano)+1]] <- aov(n_adultos ~ coesao, data = avistagens)
-lista_ano[[length(lista_ano)+1]] <- aov(n_juvenis ~ coesao, data = avistagens)
-lista_ano[[length(lista_ano)+1]] <- aov(n_infantes ~ coesao, data = avistagens)
-lista_ano[[length(lista_ano)+1]] <- aov(n_neonatos ~ coesao, data = avistagens)
+lista_ano[[length(lista_ano)+1]] <- aov(tam_est ~ coesao_grupo, data = avistagens)
+lista_ano[[length(lista_ano)+1]] <- aov(n_adultos ~ coesao_grupo, data = avistagens)
+lista_ano[[length(lista_ano)+1]] <- aov(n_juvenis ~ coesao_grupo, data = avistagens)
+lista_ano[[length(lista_ano)+1]] <- aov(n_infantes ~ coesao_grupo, data = avistagens)
+lista_ano[[length(lista_ano)+1]] <- aov(n_neonatos ~ coesao_grupo, data = avistagens)
 
 rm(tab_ano)
 
@@ -625,49 +647,49 @@ library(effects)
 
 lista_glm <- list()
 
-lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao + rota + Temp_m + Sal_m + OD_m + Turb_m + pH_m + Pres_m + veloc_vento + beaufort + cobert_nuvens + visibilidade + reflexo,
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + rota + Temp_m + Sal_m + OD_m + Turb_m + pH_m + Pres_m + agrupamento_embarcacao + veloc_vento + beaufort + cobert_nuvens + visibilidade + reflexo,
           family = poisson, data = avistagens)
 
-lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao + rota + Temp_m + Sal_m + Turb_m + pH_m + Pres_m + veloc_vento + beaufort + cobert_nuvens + visibilidade + reflexo,
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + rota + Temp_m + Sal_m + Turb_m + pH_m + Pres_m + agrupamento_embarcacao + veloc_vento + beaufort + cobert_nuvens + visibilidade + reflexo,
           family = poisson, data = avistagens)
 
-lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao + rota + Temp_m + Sal_m + Turb_m + pH_m + Pres_m + beaufort + cobert_nuvens + visibilidade + reflexo,
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + rota + Temp_m + Sal_m + Turb_m + pH_m + Pres_m + agrupamento_embarcacao + beaufort + cobert_nuvens + visibilidade + reflexo,
           family = poisson, data = avistagens)
 
-lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao + rota + Temp_m + Sal_m + Turb_m + pH_m + Pres_m + beaufort + cobert_nuvens + reflexo,
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + rota + Temp_m + Sal_m + Turb_m + pH_m + Pres_m + agrupamento_embarcacao + beaufort + cobert_nuvens + reflexo,
           family = poisson, data = avistagens)
 
-lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao + rota + Temp_m + Sal_m + Turb_m + pH_m + Pres_m + cobert_nuvens + reflexo,
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + rota + Temp_m + Sal_m + Turb_m + pH_m + Pres_m + agrupamento_embarcacao + cobert_nuvens + reflexo,
           family = poisson, data = avistagens)
 
-lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao + rota + Temp_m + Sal_m + Turb_m + pH_m + cobert_nuvens + reflexo,
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + rota + Temp_m + Sal_m + Turb_m + pH_m + agrupamento_embarcacao + cobert_nuvens + reflexo,
           family = poisson, data = avistagens)
 
-lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao + rota + Temp_m + Sal_m + Turb_m + pH_m + cobert_nuvens,
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + rota + Temp_m + Sal_m + Turb_m + pH_m + agrupamento_embarcacao + cobert_nuvens,
           family = poisson, data = avistagens)
 
-lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao + rota + Temp_m + Sal_m + Turb_m + pH_m + reflexo,
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + rota + Temp_m + Sal_m + Turb_m + pH_m + agrupamento_embarcacao + reflexo,
           family = poisson, data = avistagens)
 
-lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao + rota + Temp_m + Sal_m + Turb_m + pH_m + cobert_nuvens + reflexo,
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + rota + Temp_m + Sal_m + Turb_m + pH_m + cobert_nuvens + reflexo,
           family = poisson, data = avistagens)
 
-lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao + rota + Temp_m + Sal_m + Turb_m + cobert_nuvens + reflexo,
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + rota + Temp_m + Sal_m + Turb_m + agrupamento_embarcacao + cobert_nuvens + reflexo,
           family = poisson, data = avistagens)
 
-lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao + rota + Temp_m + Sal_m + pH_m + cobert_nuvens + reflexo,
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + rota + Temp_m + Sal_m + pH_m + agrupamento_embarcacao + cobert_nuvens + reflexo,
           family = poisson, data = avistagens)
 
-lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao + rota + Temp_m + Turb_m + pH_m + cobert_nuvens + reflexo,
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + rota + Temp_m + Turb_m + pH_m + agrupamento_embarcacao + cobert_nuvens + reflexo,
           family = poisson, data = avistagens)
 
-lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao + rota + Sal_m + Turb_m + pH_m + cobert_nuvens + reflexo,
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + rota + Sal_m + Turb_m + pH_m + agrupamento_embarcacao + cobert_nuvens + reflexo,
           family = poisson, data = avistagens)
 
-lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao + Temp_m + Sal_m + Turb_m + pH_m + cobert_nuvens + reflexo,
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ coesao_grupo + Temp_m + Sal_m + Turb_m + pH_m + agrupamento_embarcacao + cobert_nuvens + reflexo,
           family = poisson, data = avistagens)
 
-lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ rota + Temp_m + Sal_m + Turb_m + pH_m + cobert_nuvens + reflexo,
+lista_glm[[length(lista_glm)+1]] <- glm(tam_est ~ rota + Temp_m + Sal_m + Turb_m + pH_m + agrupamento_embarcacao + cobert_nuvens + reflexo,
           family = poisson, data = avistagens)
 
 sel <- model.sel(lista_glm, rank = AIC) 

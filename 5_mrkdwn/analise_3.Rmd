@@ -8,7 +8,7 @@ output:
 ---
 
 
-# Dados {.tabset}
+# Dados {.tabset .tabset-pills .tabset-fade}
 ```{r include = FALSE}
 library(ggplot2)
 library(GGally)
@@ -83,24 +83,46 @@ clima_tab <- bind_rows(clima) %>%
   arrange(as.numeric(saida)) %>%
   dplyr::select(!"int_est")
 
-assobios <- bd_L3$assobios %>%
-  group_by(saida, estacao) %>%
+assobios <- bd_L3$embarcacoes %>% group_by(saida, estacao) %>%
+  summarise(.groups = "keep",
+            n_barcos_est = n(),
+            n_tipo_voadei = sum(tipo_emb == "voadeira", na.rm = TRUE),
+            n_tipo_lancha = sum(tipo_emb == "lancha", na.rm = TRUE),
+            n_tipo_madeir = sum(tipo_emb == "barco madeira", na.rm = TRUE),
+            n_tipo_balsa = sum(tipo_emb == "balsa", na.rm = TRUE),
+            n_tipo_jetski = sum(tipo_emb == "jetski", na.rm = TRUE),
+            n_tipo_bote = sum(tipo_emb == "bote", na.rm = TRUE),
+            n_tipo_canoa = sum(tipo_emb == "canoa", na.rm = TRUE),
+            n_fin_pesca = sum(finalid_emb == "pesca", na.rm = TRUE),
+            n_fin_transp = sum(finalid_emb == "transporte", na.rm = TRUE) + 
+              sum(finalid_emb == "local", na.rm = TRUE),
+            n_fin_partic = sum(finalid_emb == "particular", na.rm = TRUE),
+            n_fin_turism = sum(finalid_emb == "turismo", na.rm = TRUE) + 
+              sum(finalid_emb == "passeio", na.rm = TRUE),
+            n_mot_MP = sum(tipo_motor == "MP", na.rm = TRUE),
+            n_mot_MC = sum(tipo_motor == "MC", na.rm = TRUE),
+            dist_m = mean(distancia_m, na.rm = TRUE)) %>%
+  right_join(bd_L3$assobios, by = c("saida", "estacao")) %>%
+  dplyr::select(1,2,18:41,3:17) %>%
   left_join(sonda_tab, by = c("saida", "estacao")) %>%
   dplyr::select(!c("assobios", "OBS", "periodo")) %>%
-  left_join(clima_tab, by = c("saida", "estacao"))
+  left_join(clima_tab, by = c("saida", "estacao")) %>%
+  mutate(estacao = as.factor(estacao))
+
+assobios$n_barcos_est[(is.na(assobios$n_barcos_est))] <- 0
+assobios$n_barcos_est <- as.factor(assobios$n_barcos_est)
+assobios$pres_barco <- assobios$n_barcos_est != 0
 
 estacoes <- bd_L3$gravacoes %>% 
   dplyr::select(arquivo_wav, duracao_s, profund_m) %>%
   right_join(assobios, by = "arquivo_wav") %>%
-  group_by(saida, estacao, data) %>%
+  group_by(saida, periodo, estacao, profund_m, data, dir_vento, veloc_vento, beaufort, cobert_nuvens, visibilidade, reflexo, coloracao_agua, pres_barco, n_barcos_est, n_tipo_voadei, n_tipo_lancha, n_tipo_madeir, n_tipo_balsa, n_tipo_jetski, n_tipo_bote, n_tipo_canoa, n_fin_pesca, n_fin_transp, n_fin_partic, n_fin_turism, n_mot_MP, n_mot_MC, Temp_m, Sal_m, OD_m, Turb_m, pH_m, Pres_m, dist_m) %>%
   summarise(.groups = "keep",
-            periodo = first(periodo),
             t_wav =  round(seconds_to_period(sum(unique(duracao_s), na.rm = TRUE)),0),
             n_wav = n_distinct(arquivo_wav,na.rm = FALSE),
             wav_com = sum(unique(canal), na.rm = TRUE),
             wav_sem = n_wav-wav_com,
             n_ass = sum(canal, na.rm = TRUE),
-            profund_m = mean(profund_m, na.rm = TRUE),
             DT_m = mean(DT, na.rm = TRUE),
             LF_m = mean(LF, na.rm = TRUE),
             HF_m = mean(HF, na.rm = TRUE),
@@ -109,20 +131,23 @@ estacoes <- bd_L3$gravacoes %>%
             APD_m = mean(APD, na.rm = TRUE),
             PF_m = mean(PF, na.rm = TRUE),
             FI_m = mean(FI, na.rm = TRUE),
-            FF_m = mean(FF, na.rm = TRUE),
-            Temp_m = mean(Temp_m, na.rm = TRUE),
-            Sal_m = mean(Sal_m, na.rm = TRUE),
-            OD_m = mean(OD_m, na.rm = TRUE),
-            Turb_m = mean(Turb_m, na.rm = TRUE),
-            pH_m = mean(pH_m, na.rm = TRUE),
-            Pres_m = mean(Pres_m, na.rm = TRUE),
-            dir_vento = first(dir_vento),
-            veloc_vento = first(veloc_vento),
-            beaufort = first(beaufort),
-            cobert_nuvens = first(cobert_nuvens),
-            visibilidade = first(visibilidade),
-            reflexo = first(reflexo),
-            coloracao_agua = first(coloracao_agua))
+            FF_m = mean(FF, na.rm = TRUE)) %>%
+  ungroup()
+
+estacoes$n_tipo_voadei[(is.na(estacoes$n_tipo_voadei))] <- 0
+estacoes$n_tipo_lancha[(is.na(estacoes$n_tipo_lancha))] <- 0
+estacoes$n_tipo_madeir[(is.na(estacoes$n_tipo_madeir))] <- 0
+estacoes$n_tipo_balsa[(is.na(estacoes$n_tipo_balsa))] <- 0
+estacoes$n_tipo_jetski[(is.na(estacoes$n_tipo_jetski))] <- 0
+estacoes$n_tipo_bote[(is.na(estacoes$n_tipo_bote))] <- 0
+estacoes$n_tipo_canoa[(is.na(estacoes$n_tipo_canoa))] <- 0
+estacoes$n_fin_pesca[(is.na(estacoes$n_fin_pesca))] <- 0
+estacoes$n_fin_transp[(is.na(estacoes$n_fin_transp))] <- 0
+estacoes$n_fin_partic[(is.na(estacoes$n_fin_partic))] <- 0
+estacoes$n_fin_turism[(is.na(estacoes$n_fin_turism))] <- 0
+estacoes$n_mot_MP[(is.na(estacoes$n_mot_MP))] <- 0
+estacoes$n_mot_MC[(is.na(estacoes$n_mot_MC))] <- 0
+
 
 ```
 
@@ -138,7 +163,7 @@ estacoes
 assobios
 ```
 
-# Análises {.tabset}
+# Análises {.tabset .tabset-pills .tabset-fade}
 
 ## Resumos
 
@@ -165,9 +190,9 @@ res_3 <- resumo_3 %>%
 res_3
 ```
 
-## Gráfica {.tabset}
+## Gráfica {.tabset .tabset-pills .tabset-fade}
 
-### Por estação + Período {.tabset}
+### Por estação + Período {.tabset .tabset-pills .tabset-fade}
 
 #### Estação X Profundidade X Número de assobios
 
@@ -197,7 +222,8 @@ g2
 
 ```{r include = FALSE}
 g3 <- estacoes %>% mutate(estacao = as.factor(estacao)) %>%
-  ggpairs (., columns = c("estacao", "DT_m", "LF_m", "HF_m", "MF_m", "CF_m", "APD_m", "PF_m", "FI_m", "FF_m"), aes(color = periodo, alpha = 0.7), legend = 1)
+  ggpairs (., columns = c("estacao", "DT_m", "LF_m", "HF_m", "MF_m", "CF_m", "APD_m", "PF_m", "FI_m", "FF_m"), aes(color = periodo, alpha = 0.7), legend = 1) +
+   theme(axis.text.x = element_text(angle = 90))
 ```
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
@@ -216,7 +242,7 @@ g4 <- estacoes %>% mutate(estacao = as.factor(estacao)) %>%
 g4
 ```
 
-### Por período + Estação {.tabset}
+### Por período + Estação {.tabset .tabset-pills .tabset-fade}
 
 #### Período X Profundidade X Número de assobios
 
@@ -265,7 +291,7 @@ gp4 <- estacoes %>%
 gp4
 ```
 
-### Por assobio {.tabset}
+### Por assobio {.tabset .tabset-pills .tabset-fade}
 
 #### Parâmetros raven
 
@@ -273,7 +299,8 @@ gp4
 ga1 <- assobios %>% 
   ggpairs (., columns = c("DT", "LF", "HF", "MF", "CF", "APD", "PF", "FI", "FF"),
            aes(color = periodo, alpha = 0.7),
-           legend = 1)
+           legend = 1) +
+   theme(axis.text.x = element_text(angle = 90))
 ```
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
@@ -284,7 +311,7 @@ ga1
 
 
 
-#### Normal Quantil Plots
+#### Normal-Quantil Plots
 
 ```{r include = FALSE}
 
@@ -305,7 +332,8 @@ gn3 <- assobios %>% ggplot(aes(sample = LF)) +
   geom_qq_line(color = "blue") +
   labs(y = "High Freq (Hz)",
        x = "Teórico")
-  
+
+# Redundante, usar PF  
 gn4 <- assobios %>% ggplot(aes(sample = MF)) +
   geom_qq(alpha = 0.1) +
   geom_qq_line(color = "blue") +
@@ -348,7 +376,9 @@ gn10 <- assobios %>% ggplot(aes(sample = FF)) +
   labs(y = "Final Freq (Hz)",
        x = "Teórico")
 
-PQ <- plot((gn1|gn2)/(gn3|gn4)/(gn5|gn6)/(gn7|gn8)/(gn9|gn10))
+PQ <- plot((gn1+gn2+gn3)/(gn5+gn6+gn7)/(gn8+gn9+gn10)) +
+  plot_layout(widths = c(1,1),
+              heights = unit(c(2,2,2,2,2), "cm"))
   
 ```
 
@@ -356,8 +386,105 @@ PQ <- plot((gn1|gn2)/(gn3|gn4)/(gn5|gn6)/(gn7|gn8)/(gn9|gn10))
 PQ
 ```
 
+### PCA {.tabset .tabset-pills .tabset-fade}
 
-## Numérica {.tabset}
+```{r include = FALSE}
+library(ggfortify)
+library(factoextra)
+library(vegan)
+
+x <- assobios %>%
+  ungroup() %>%
+  dplyr::select(BT, ET, LF, HF, CF, APD, DT, DF, PF, PT, FI, FF, n_barcos_est, pres_barco) %>%
+  na.omit()
+pca <- prcomp(x[,-c(13,14)], scale. = TRUE)
+
+pca12 <- autoplot(pca,
+                  data = x,
+                  x = 1,
+                  y = 2,
+                  frame.colour = "pres_barco",
+                  loadings = TRUE,
+                  loadings.label = TRUE,
+                  frame = TRUE)
+
+pca23 <- autoplot(pca,
+                  data = x,
+                  x = 2,
+                  y = 3,
+                  frame.colour = "pres_barco",
+                  loadings = TRUE,
+                  loadings.label = TRUE,
+                  frame = TRUE)
+
+cor <- cor(scores(pca, choices=1:3), x[,-c(13,14)])
+
+tab_cor <- tibble(Componente = rownames(cor),
+                  BT = cor[,1],
+                  ET = cor[,2],
+                  LF = cor[,3],
+                  HF = cor[,4],
+                  CF = cor[,5],
+                  APD = cor[,6],
+                  DT = cor[,7],
+                  DF = cor[,8],
+                  PF = cor[,9],
+                  PT = cor[,10],
+                  FI = cor[,11],
+                  FF = cor[,12],)
+
+
+pc_1 <- fviz_contrib(pca, choice = "var", axes = c(1), fill = "lightgray", color = "black") +
+  theme_minimal()
+
+pc_2 <- fviz_contrib(pca, choice = "var", axes = c(2), fill = "lightgray", color = "black") +
+  theme_minimal()
+
+pc_3 <- fviz_contrib(pca, choice = "var", axes = c(3), fill = "lightgray", color = "black") +
+  theme_minimal()
+
+pc_sep <- plot(pc_1 / pc_2 / pc_3)
+
+
+pc_12 <- fviz_contrib(pca, choice = "var", axes = c(1,2), fill = "lightgray", color = "black") +
+  theme_minimal()
+
+pc_23 <- fviz_contrib(pca, choice = "var", axes = c(2:3), fill = "lightgray", color = "black") +
+  theme_minimal()
+
+pc_123 <- fviz_contrib(pca, choice = "var", axes = c(1:3), fill = "lightgray", color = "black") +
+  theme_minimal()
+
+pc_jun <- plot(pc_12 / pc_23 / pc_123)
+```
+
+#### Eixos 1 x 2
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+pca12
+```
+
+#### Eixos 2 x 3
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+pca23
+```
+
+#### Correlação com eixos individuais 
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+pc_sep
+```
+
+#### Correlação com mix de eixos 
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+pc_jun
+```
+
+
+
+## Numérica {.tabset .tabset-pills .tabset-fade}
 ### Shapiro-Wilk - Normalidade
 
 valores de p sao muito menores que 0.05 -> Dados nao seguem normalidade 
@@ -411,6 +538,23 @@ knitr::kable(tab_sha %>% arrange(desc(as.numeric(p_value))),
 ```
 
 
+### Permutação
+
+?
+
+```{r include=FALSE}
+library(coin)
+
+
+
+```
+
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+
+```
+
+ 
 ### LM - Modelos Lineares
 
 - H0 - Não tem relação entre "var_dependente" ~ "var_independente"
@@ -564,17 +708,3 @@ knitr::kable(tab_sel,
              caption = "Modelos Lineares Generalizados")
 
 ```
-
-
-
-
-
-
-### PCA
-
-```{r include = FALSE}
-library(vegan)
-
-
-```
-

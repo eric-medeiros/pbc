@@ -1,0 +1,15 @@
+---
+title: "Mapa da área de estudo"
+author: "Equipe do Projeto Boto-Cinza"
+date: "01/03/2022"
+output:
+  html_document:
+    df_print: "paged"
+---
+
+
+# Dados {.tabset .tabset-pills .tabset-fade}
+```{r include = FALSE}
+
+
+```
