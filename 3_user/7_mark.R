@@ -16,6 +16,19 @@ setwd(nova_pasta)
 
 bd_L1 <- readRDS(paste0(pasta_proj,"/4_export/1_banco/bd_L1.rds"))
 
+# Tirar um theta para cada grupo
+
+theta <- bd_L1$avistagens$n_marcados/bd_L1$avistagens$tam_grupo
+
+# Fazendo a média do theta
+
+theta_m <- mean(theta, na.rm=TRUE)
+
+# Fazendo um desvio para theta
+
+# Corrigindo lcl e ucl
+
+
 historico_dia <- bd_L1$identificacoes %>%
   group_by(ID) %>%
   mutate(data = date(datahora),
@@ -36,8 +49,14 @@ dp_dia <- process.data(mark_dia, model = "Closed")
 
 result <- mark(dp_dia)
 
-result$results$derived$`N Population Size`
+# Corrigindo estimativa
+result$results$derived$`N Population Size`$estimate / theta_m
 
+
+
+
+
+# Limpando arquivo velhos e voltando o working directory
 cleanup(ask = FALSE)
 
 setwd(pasta_proj)
