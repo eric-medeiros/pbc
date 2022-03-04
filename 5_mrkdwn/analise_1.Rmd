@@ -97,7 +97,8 @@ avistagens
 resumo_1 <- read.delim(paste0(pasta_proj, "/4_export/2_resumo/rel_1.txt"))
 
 res_1 <- resumo_1 %>% 
-  summarise (KM_T = sum(KM),
+  summarise (SAIDAS = n(),
+             KM_T = sum(KM),
              GRUPOS_T = sum(GRUPOS),
              FOTO_T = sum(FOTOS),
              T_BARCO_T = sum(as.duration(hms(T_BARCO))),

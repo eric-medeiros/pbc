@@ -1,0 +1,165 @@
+---
+title: "Áreas de Estudo"
+author: "Projeto Boto-Cinza"
+output:
+  flexdashboard::flex_dashboard:
+    theme: paper
+    source_code: embed
+---
+
+```{r setup, include=FALSE}
+library(dplyr) 
+library(leaflet)  
+library(sf)
+library(stringr)
+library(htmlwidgets)
+library(htmlTable)
+
+pasta_proj <- rprojroot::find_rstudio_root_file()
+
+arquivo_area <- paste0(pasta_proj, "/1_data/SHAPES_AUX/Areas_PBC.shp")
+arquivo_rota <- paste0(pasta_proj, "/1_data/SHAPES_AUX/Rotas_PBC.shp")
+arquivo_pnto <- paste0(pasta_proj, "/1_data/SHAPES_AUX/Pontos_PBC.shp")
+
+area_cru <- st_read(arquivo_area)
+rota_cru <- st_read(arquivo_rota)
+pnto_cru <- st_read(arquivo_pnto)
+
+areas <- area_cru %>%
+  filter(Tipo == "Area")  %>%
+  st_make_valid () %>%
+  mutate(Rota = c(2,3,1,2,2,1,1), 
+         Area = round(as.double(st_area(geometry)/1000^2),1),
+         Comp = 0,
+         Estacao = 0) %>%
+  select(Linha, Rota, Area, Comp, Tipo, Estacao, geometry)
+
+
+rotas <- 
+rota_cru %>%
+  filter(Tipo == "Pesquisa") %>%
+  st_make_valid() %>%
+  mutate(Comp = round(as.double(st_length(geometry)/1000), 1), 
+         Area = 0,
+         Estacao = 0) %>%
+  select(Linha, Rota, Area, Comp, Tipo, Estacao, geometry)
+
+
+rotas_embarc <- 
+  rota_cru %>%
+  filter(Tipo !="Pesquisa") %>%
+  mutate(Comp = 0,
+         Area = 0,
+         Estacao = 0) %>%
+  select(Linha, Rota, Area, Comp, Tipo, Estacao, geometry)
+
+
+pontos <-
+  pnto_cru %>% 
+  filter(Linha == 3) %>%
+  arrange(Estacoes) %>%
+  mutate(geometry = st_cast(geometry,"POINT"),
+         Estacao = Estacoes,
+         Area = 0,
+         Comp = 0,
+         Tipo = "Pontos") %>% 
+  select(Linha, Rota, Area, Comp, Tipo, Estacao, geometry)
+
+data <- 
+  bind_rows(areas, rotas, rotas_embarc, pontos) %>%
+  select(7,1:6)
+
+```
+
+
+Mapas {data-icon="ion-stats-bars"}
+=====================================  
+
+Column {.sidebar data-width=200}
+-------------------------------------
+
+### Areas e Rotas
+
+```{r}
+data %>% as_tibble() %>% filter(Tipo == "Area", Linha %in% c("1","3")) %>% arrange(Linha,Rota) %>% select(1:3) %>% left_join(
+  data %>% as_tibble() %>% filter(Tipo == "Pesquisa", Linha %in% c("1","3")) %>% arrange(Linha,Rota) %>% select(1,2,4), by = c("Linha", "Rota")) %>% select(-1) %>%
+  addHtmlTableStyle(align = "l|c|c", 
+                    css.cell = c("width: 100;","width: 100;","width: 100;")) %>%
+  htmlTable(rgroup = c("Linhas 1 e 2", "Linha 3"),
+            n.rgroup = c(3,2),
+            rnames = FALSE)
+
+```
+
+
+
+Column {data-width=800}
+-------------------------------------
+    
+### Mapa
+    
+```{r map}
+
+pal_green <- colorNumeric(palette = "Greens",
+                         domain = 5:0)
+
+pal_lines <- colorFactor(palette = "viridis",
+                         domain = c("Passeio",
+                                    "Balsa",
+                                    "Pesca"))
+
+area_1 <- data %>% filter(Linha == 1, Tipo == "Area")
+area_2 <- data %>% filter(Linha == 2, Tipo == "Area")
+area_3 <- data %>% filter(Linha == 3, Tipo == "Area")
+rota_1 <- data %>% filter(Linha == 1, Tipo == "Pesquisa")
+rota_2 <- data %>% filter(Linha == 2, Tipo == "Pesquisa")
+rota_pas <- data %>% filter(Tipo == "Passeio")
+rota_bal <- data %>% filter(Tipo == "Balsa")
+rota_pes <- data %>% filter(Tipo == "Pesca")
+pnts <- data %>% filter(Estacao != 0)
+
+
+leaflet() %>%
+  addProviderTiles("Esri.WorldImagery") %>%
+  addScaleBar(position = "bottomleft") %>%
+  addPolygons(data = area_1, group = "Área de Estudo 1", weight = 2, color = ~pal_green(Rota)) %>%
+  addPolygons(data = area_2, group = "Área de Estudo 2", weight = 2, color = ~pal_green(Rota)) %>%
+  addPolygons(data = area_3, group = "Área de Estudo 3", weight = 2, color = ~pal_green(Rota)) %>%
+  addPolylines(data = rota_1, group = "Rotas 1", weight = 2, color = ~pal_green(Rota)) %>%
+  addPolylines(data = rota_2, group = "Rotas 2", weight = 2, color = ~pal_green(Rota)) %>%
+  addPolylines(data = rota_pas, group = "Passeios", color = ~pal_lines(Tipo)) %>%
+  addPolylines(data = rota_bal, group = "Balsa", color = ~pal_lines(Tipo)) %>%
+  addPolylines(data = rota_pes, group = "Pesca", color = ~pal_lines(Tipo)) %>%
+  addCircleMarkers(data = pnts, group = "Estações de Coleta", color = "blue", radius = 5) %>%
+  addLayersControl(baseGroups = c("Área de Estudo 1",
+                                  "Área de Estudo 2",
+                                  "Área de Estudo 3",
+                                  ""),
+                   overlayGroups = c("Rotas 1",
+                                     "Rotas 2",
+                                     "Passeios",
+                                     "Balsa",
+                                     "Pesca",
+                                     "Estações de Coleta")) %>%
+  hideGroup(c("Área de Estudo 1",
+              "Área de Estudo 2",
+              "Área de Estudo 3",
+              "Rotas 1",
+              "Rotas 2",
+              "Estações de Coleta",
+              "Passeios",
+              "Balsa",
+              "Pesca")) %>%
+  addMeasure(primaryLengthUnit = "kilometers",
+             primaryAreaUnit = "sqmeters")
+
+
+```
+
+Information {data-orientation=rows data-icon="fa-info-circle"}
+===================================== 
+
+
+### Mais coisas
+
+resumos?

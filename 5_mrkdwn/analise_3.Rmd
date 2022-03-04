@@ -155,6 +155,7 @@ estacoes$n_mot_MC[(is.na(estacoes$n_mot_MC))] <- 0
 
 ```{r echo = FALSE}
 estacoes
+
 ```
 
 ## Assobios
@@ -259,6 +260,7 @@ gp1 <- estacoes %>%
 gp1
 ```
 
+
 #### Período X Arquivos gravados X Arquivos com assobios
 
 ```{r include  = FALSE}
@@ -276,6 +278,7 @@ gp2 <- estacoes  %>%
 gp2
 ```
 
+
 #### Período X Parâmetros sonda
 
 ```{r include = FALSE}
@@ -289,6 +292,47 @@ gp4 <- estacoes %>%
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 gp4
+```
+
+#### Assobios/hora
+
+```{r include  = FALSE}
+gp5 <- 
+estacoes  %>% 
+  filter(estacao %in% c("1", "2", "3", "10", "11", "12", "14")) %>%
+  mutate(ass_p_h = n_ass/(period_to_seconds(t_wav)/3600)) %>%
+  select(periodo, ass_p_h) %>%
+  ggplot() +
+  geom_boxplot(aes(x = periodo, y = ass_p_h, fill = periodo), show.legend = FALSE) +
+  ylim(c(0,200)) +
+  ylab("Assobios por hora") +
+  xlab("Período") +
+  labs(title = "Frequência de Assobios")
+```
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+gp5
+```
+
+#### (wav_com/n_wav) X (ass/h) X Período
+
+```{r include  = FALSE}
+gp6 <- 
+estacoes %>%
+  filter(estacao %in% c("1", "2", "3", "10", "11", "12", "14")) %>%
+  mutate(wav = ifelse(wav_com == 0, "Ausência", "Presença")) %>%
+  select(wav, periodo) %>%
+  ggplot() +
+  geom_bar(aes(x = periodo, fill = wav)) +
+  theme_minimal() +
+  xlab("Período") +
+  ylab("Contagem") +
+  labs(title = "Presença de Assobios nos Arquivos") +
+  guides(fill = guide_legend(title = "Assobios"))
+```
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+gp6
 ```
 
 ### Por assobio {.tabset .tabset-pills .tabset-fade}
@@ -385,6 +429,7 @@ PQ <- plot((gn1+gn2+gn3)/(gn5+gn6+gn7)/(gn8+gn9+gn10)) +
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 PQ
 ```
+
 
 ### PCA {.tabset .tabset-pills .tabset-fade}
 
@@ -537,22 +582,110 @@ knitr::kable(tab_sha %>% arrange(desc(as.numeric(p_value))),
              caption = "Teste de Normalidade")
 ```
 
+### Permutação {.tabset .tabset-pills .tabset-fade}
 
-### Permutação
-
-?
+#### Por Presença de Embarcação
 
 ```{r include=FALSE}
 library(coin)
 
+data <- 
+  assobios %>%
+  filter(!is.na(BT)) %>%
+  mutate(pres_barco = factor(pres_barco))
 
+lista_per <- list()
+
+lista_per[[length(lista_per)+1]] <- oneway_test(LF ~ pres_barco, data = data, alternative = "two.sided",
+                                                distribution = approximate(nresample = 10^4))
+lista_per[[length(lista_per)+1]] <- oneway_test(HF ~ pres_barco, data = data, alternative = "two.sided",
+                                                distribution = approximate(nresample = 10^4))
+lista_per[[length(lista_per)+1]] <- oneway_test(CF ~ pres_barco, data = data, alternative = "two.sided",
+                                                distribution = approximate(nresample = 10^4))
+lista_per[[length(lista_per)+1]] <- oneway_test(APD ~ pres_barco, data = data, alternative = "two.sided",
+                                                distribution = approximate(nresample = 10^4))
+lista_per[[length(lista_per)+1]] <- oneway_test(DT ~ pres_barco, data = data, alternative = "two.sided",
+                                                distribution = approximate(nresample = 10^4))
+lista_per[[length(lista_per)+1]] <- oneway_test(DF ~ pres_barco, data = data, alternative = "two.sided",
+                                                distribution = approximate(nresample = 10^4))
+lista_per[[length(lista_per)+1]] <- oneway_test(PF ~ pres_barco, data = data, alternative = "two.sided",
+                                                distribution = approximate(nresample = 10^4))
+lista_per[[length(lista_per)+1]] <- oneway_test(FI ~ pres_barco, data = data, alternative = "two.sided",
+                                                distribution = approximate(nresample = 10^4))
+lista_per[[length(lista_per)+1]] <- oneway_test(FF ~ pres_barco, data = data, alternative = "two.sided",
+                                                distribution = approximate(nresample = 10^4))
+rm(tab_per)
+
+for (i in 1:length(lista_per)){
+  
+  if(!exists("tab_per")) { 
+    tab_per <- tibble(.rows = length(lista_per),
+                      teste = NA,
+                      Z = NA,
+                      p_value = NA) }
+  
+    tab_per$teste[[i]] <- show(lista_per[[i]])$data.name
+    tab_per$Z <- show(lista_per[[i]])$statistic[[1]]
+    tab_per$p_value[[i]] <- pvalue(lista_per[[i]])[[1]]
+}
 
 ```
-
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
+tab_per
+```
+
+#### Por Período
+
+```{r include=FALSE}
+library(coin)
+
+data <- 
+  assobios %>%
+  filter(!is.na(BT)) %>%
+  mutate(periodo = factor(periodo))
+
+lista_per <- list()
+
+lista_per[[length(lista_per)+1]] <- oneway_test(LF ~ periodo, data = data, alternative = "two.sided",
+                                                distribution = approximate(nresample = 10^4))
+lista_per[[length(lista_per)+1]] <- oneway_test(HF ~ periodo, data = data, alternative = "two.sided",
+                                                distribution = approximate(nresample = 10^4))
+lista_per[[length(lista_per)+1]] <- oneway_test(CF ~ periodo, data = data, alternative = "two.sided",
+                                                distribution = approximate(nresample = 10^4))
+lista_per[[length(lista_per)+1]] <- oneway_test(APD ~ periodo, data = data, alternative = "two.sided",
+                                                distribution = approximate(nresample = 10^4))
+lista_per[[length(lista_per)+1]] <- oneway_test(DT ~ periodo, data = data, alternative = "two.sided",
+                                                distribution = approximate(nresample = 10^4))
+lista_per[[length(lista_per)+1]] <- oneway_test(DF ~ periodo, data = data, alternative = "two.sided",
+                                                distribution = approximate(nresample = 10^4))
+lista_per[[length(lista_per)+1]] <- oneway_test(PF ~ periodo, data = data, alternative = "two.sided",
+                                                distribution = approximate(nresample = 10^4))
+lista_per[[length(lista_per)+1]] <- oneway_test(FI ~ periodo, data = data, alternative = "two.sided",
+                                                distribution = approximate(nresample = 10^4))
+lista_per[[length(lista_per)+1]] <- oneway_test(FF ~ periodo, data = data, alternative = "two.sided",
+                                                distribution = approximate(nresample = 10^4))
+rm(tab_per)
+
+for (i in 1:length(lista_per)){
+  
+  if(!exists("tab_per")) { 
+    tab_per <- tibble(.rows = length(lista_per),
+                      teste = NA,
+                      Z = NA,
+                      p_value = NA) }
+  
+    tab_per$teste[[i]] <- show(lista_per[[i]])$data.name
+    tab_per$Z <- show(lista_per[[i]])$statistic[[1]]
+    tab_per$p_value[[i]] <- pvalue(lista_per[[i]])[[1]]
+}
 
 ```
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+tab_per
+```
+
 
  
 ### LM - Modelos Lineares

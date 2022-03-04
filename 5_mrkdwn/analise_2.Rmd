@@ -171,7 +171,8 @@ eventos
 resumo_2 <- read.delim(paste0(pasta_proj, "/4_export/2_resumo/rel_2.txt"))
 
 res_2 <- resumo_2 %>% 
-  summarise (KM_T = sum(KM),
+  summarise (SAIDAS = n(),
+             KM_T = sum(KM),
              GRUPOS_T = sum(GRUPOS, na.rm = TRUE),
              COMPS_T = sum(COMPS, na.rm = TRUE),
              T_BARCO_T = sum(as.duration(hms(T_BARCO)), na.rm = TRUE),
