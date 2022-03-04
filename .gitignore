@@ -17,8 +17,6 @@ bin-release/
 4_export/6_clima/**
 4_export/7_mark/**
 
-# Garantindo os arquivos de 1_data
-\!1_data/**
 
 # thumbs de imagens tiff
 Thumbs.db
@@ -35,3 +33,8 @@ Thumbs.db
 # information for Eclipse / Flash Builder.
 .Rproj.user
 
+# Garantindo os arquivos de 1_data
+!1_data/**
+
+# Garantindo dash
+!5_mrkdwn/dash.html
